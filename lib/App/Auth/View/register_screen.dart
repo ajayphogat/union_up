@@ -603,10 +603,14 @@ class RegisterScreen extends StatelessWidget {
                     return;
                   }
                   if (authProvider.isChecked == false) {
-                    return showSnackBarBottom(
-                        context: context,
-                        title: "Warning",
-                        description: "Please check the T&Cs check box.");
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Please check the T&Cs check box.",style: Theme.of(context).textTheme.labelLarge,),
+                        backgroundColor: AppColors.primary,
+                      ),);
+
+                     return;
                   }
 
                   final data = RegisterDataStoreModel(
