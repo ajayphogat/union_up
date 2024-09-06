@@ -44,6 +44,11 @@ const String addFileIcon = "assets/images/add_file.png";
 
 const String visibilityImage = "assets/images/visibility.png";
 
+const String cameraIcon = "assets/images/camera.png";
+const String albumIcon = "assets/images/album.png";
+const String fileIcon = "assets/images/file.png";
+const String videoCamera = "assets/images/video_camera.png";
+
 
 const String testImage = "https://cdnassets.hw.net/dims4/GG/4af0b48/2147483647/strip/true/crop/2000x1333+0+0/resize/300x200!/quality/90/?url=https%3A%2F%2Fcdnassets.hw.net%2F2c%2Fc7%2Fb9dd2dd14581afb797ec93aa3e15%2Fadobestock-138143966.jpeg";
 

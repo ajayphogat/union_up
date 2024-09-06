@@ -20,6 +20,7 @@ class RegisterScreen extends StatelessWidget {
     var width = MediaQuery.sizeOf(context).width;
     return Consumer<AuthController>(
       builder: (context, authProvider, child) => Scaffold(
+        backgroundColor: AppColors.white,
         resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
           child: Container(

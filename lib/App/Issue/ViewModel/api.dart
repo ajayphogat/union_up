@@ -14,6 +14,7 @@ import '../Model/detail_comment_model.dart';
 import '../Model/issue_category_model.dart';
 import '../Model/issue_detail_model.dart';
 import '../Model/issue_model.dart';
+import '../Model/palaces_model.dart';
 import '../Model/report_assign_model.dart';
 import 'package:http/http.dart' as http;
 
@@ -331,4 +332,22 @@ class IssueApi {
       return false;
     }
   }
+
+
+  Future<SearchPlaceModel?> searchAutocomplete(String query) async {
+    Uri uri = Uri.https(
+        "maps.googleapis.com",
+        "maps/api/place/autocomplete/json",
+        {"input": query, "key": ApiKeys.googleAPiKey});
+    try {
+      final response = await get(uri,);
+      final parse = jsonDecode(response.body);
+      if (parse['status'] == "OK") {
+        SearchPlaceModel searchPlaceModel = SearchPlaceModel.fromJson(parse);
+        return searchPlaceModel;
+      }
+    } catch (err) {}
+    return null;
+  }
+
 }

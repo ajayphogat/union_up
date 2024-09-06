@@ -30,6 +30,7 @@ class IssueDetailSceen extends StatelessWidget {
           resizeToAvoidBottomInset: true,
           backgroundColor: AppColors.white,
           appBar: AppBar(
+            toolbarHeight: 90,
             leading: Row(
               children: [
                 const SizedBox(
@@ -47,7 +48,7 @@ class IssueDetailSceen extends StatelessWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Issue Detail",
+                    "Issue Details",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
@@ -208,12 +209,6 @@ class IssueDetailSceen extends StatelessWidget {
                             onTap: () {
                               controller.pickCommentImage(
                                   ImageSource.gallery);
-                              // var data = AddIssueCommentModel(
-                              //   commentImage: "",
-                              //   postId: id
-                              //     );
-
-
                             },
                             child: Padding(
                               padding: const EdgeInsets.only(left: 18.0),
@@ -1349,6 +1344,8 @@ class IssueDetailSceen extends StatelessWidget {
       ),
     );
   }
+
+
 }
 
 void _showMultiSelectGroup(

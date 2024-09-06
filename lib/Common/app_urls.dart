@@ -2,6 +2,7 @@
 ///
 
 ///Server URL
+
 const String serverURL = "https://wp-dev.rglabs.net/union-up/";
 
 const String baseURL = "${serverURL}wp-json/custom/v1/";
@@ -28,3 +29,7 @@ const String issueCommentUrl = "${baseURL}post_issue_comment";
 const String detailCommentUrl = "${baseURL}comment_listing";
 const String addArchiveUrl = "${baseURL}add_archive";
 
+class ApiKeys{
+  ApiKeys._();
+  static const googleAPiKey = "AIzaSyACG0YonxAConKXfgaeVYj7RCRdXazrPYI";
+}

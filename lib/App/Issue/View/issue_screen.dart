@@ -168,7 +168,7 @@ class IssueScreen extends StatelessWidget {
                           ),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 15.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Center(
                             child: Row(
                               children: [
@@ -181,10 +181,10 @@ class IssueScreen extends StatelessWidget {
                                         color: AppColors.grey,
                                       ),
                                 ),
-                                SizedBox(
+                                const SizedBox(
                                   width: 10,
                                 ),
-                                Icon(Icons.keyboard_arrow_down_outlined)
+                                const Icon(Icons.keyboard_arrow_down_outlined)
                               ],
                             ),
                           ),
@@ -222,9 +222,9 @@ class IssueScreen extends StatelessWidget {
                     var issue = controller.issueList[index];
                     return Dismissible(
                       key: Key(issue.id.toString()),
-                      // Unique key for each item
+
                       direction: DismissDirection.endToStart,
-                      // Enable swipe from right to left
+
                       background: Container(
                         alignment: Alignment.centerRight,
                         padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -300,7 +300,7 @@ class IssueScreen extends StatelessWidget {
                         // This will be handled by the archiveIssue callback
                       },
                       child: Padding(
-                        padding: const EdgeInsets.only(
+                        padding: const EdgeInsets.only( top: 0,
                             bottom: 8.0, right: 10, left: 10),
                         child: ListTile(
                           onTap: () {
@@ -313,6 +313,7 @@ class IssueScreen extends StatelessWidget {
                           },
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8)),
+                          contentPadding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
                           title: Text(
                             issue.title?.rendered ?? "",
                             style: Theme.of(context)
@@ -354,7 +355,15 @@ class IssueScreen extends StatelessWidget {
                                           : AppColors.primary,
                                 ),
                               ),
-                              const Spacer(),
+                              // const Spacer(),
+
+                            ],
+                          ),
+                          trailing: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              const Icon(Icons.more_horiz),
+                              const SizedBox(height: 7,),
                               Container(
                                 width: 70,
                                 height: 24,
@@ -376,9 +385,9 @@ class IssueScreen extends StatelessWidget {
                                           .textTheme
                                           .labelLarge
                                           ?.copyWith(
-                                              color: issue.issueStatus != "1"
-                                                  ? AppColors.red
-                                                  : AppColors.green),
+                                          color: issue.issueStatus != "1"
+                                              ? AppColors.red
+                                              : AppColors.green),
                                     ),
                                   ),
                                 ),
@@ -394,14 +403,14 @@ class IssueScreen extends StatelessWidget {
             ),
             if (controller.isFetching)
               Container(
-                  height: 50,
+                  // height: 50,
                   width: MediaQuery.sizeOf(context).width,
                   child: const Center(
                     child: CupertinoActivityIndicator(),
                   )),
             if (controller.isFetching)
               const SizedBox(
-                height: 50,
+                // height: 50,
               )
           ],
         ),
@@ -410,175 +419,193 @@ class IssueScreen extends StatelessWidget {
   }
 
   Widget secondTab(BuildContext context, IssueController controller) {
-    return Visibility(
-      visible: controller.archiveList.isNotEmpty,
-      replacement: Center(
-        child: Text("No Archive found",
-            style: Theme.of(context).textTheme.titleLarge),
-      ),
-      child: ListView.builder(
-        itemCount: controller.archiveList.length,
-        itemBuilder: (context, index) {
-          var issue = controller.archiveList[index];
-          return Dismissible(
-            key: Key(issue.id.toString()),
-            // Unique key for each item
-            direction: DismissDirection.endToStart,
-            // Enable swipe from right to left
-            background: Container(
-              alignment: Alignment.centerRight,
-              padding: const EdgeInsets.symmetric(horizontal: 20.0),
-              color: Colors.green, // Background color when swiped
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(Icons.archive, color: Colors.white),
-                  SizedBox(width: 8),
-                  Text(
-                    'Un-Archive',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
+    return Column(
+      children: [
+        const SizedBox(height: 10,),
+        Expanded(
+          child: Visibility(
+            visible: controller.archiveList.isNotEmpty,
+            replacement: Center(
+              child: Text("No Archive found",
+                  style: Theme.of(context).textTheme.titleLarge),
             ),
-            confirmDismiss: (DismissDirection direction) async {
-              // Ask for confirmation before dismissing the item
-              return await showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    title: Text(
-                      "UnArchive Issue",
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    content: Text(
-                      "Are you sure you want to unarchive this issue?",
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(false),
-                        child: Text(
-                          "Cancel",
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
-                              ?.copyWith(color: AppColors.black),
+            child: ListView.builder(
+              itemCount: controller.archiveList.length,
+              itemBuilder: (context, index) {
+                var issue = controller.archiveList[index];
+                return Dismissible(
+                  key: Key(issue.id.toString()),
+                  // Unique key for each item
+                  direction: DismissDirection.endToStart,
+                  // Enable swipe from right to left
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                    color: Colors.green, // Background color when swiped
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Icon(Icons.archive, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          'Un-Archive',
+                          style: TextStyle(color: Colors.white),
                         ),
+                      ],
+                    ),
+                  ),
+                  confirmDismiss: (DismissDirection direction) async {
+                    // Ask for confirmation before dismissing the item
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text(
+                            "UnArchive Issue",
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                          content: Text(
+                            "Are you sure you want to unarchive this issue?",
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: Text(
+                                "Cancel",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(color: AppColors.black),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: Text(
+                                "UnArchive",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(color: AppColors.primary),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  onDismissed: (direction) {
+                    // Handle archive action
+                    // controller.archiveIssue(issue.id);
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Issue unarchived'),
+                    ));
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0, right: 10, left: 10),
+                    child: ListTile(
+                      tileColor: AppColors.white,
+                      contentPadding: const EdgeInsets.fromLTRB(10, 0, 5, 0),
+                      onTap: () {
+                        controller.getIssueDetail(context, issue.id.toString(),
+                            (value) {
+                          if (value == true) {
+                            openIssueDetail(context, issue.id.toString());
+                          }
+                        });
+                      },
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
+                      title: Text(
+                        issue.title?.rendered ?? "",
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyMedium
+                            ?.copyWith(color: AppColors.black),
+                        maxLines: 2,
                       ),
-                      TextButton(
-                        onPressed: () => Navigator.of(context).pop(true),
-                        child: Text(
-                          "UnArchive",
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
-                              ?.copyWith(color: AppColors.primary),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            onDismissed: (direction) {
-              // Handle archive action
-              // controller.archiveIssue(issue.id);
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                content: Text('Issue unarchived'),
-              ));
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 8.0, right: 10, left: 10),
-              child: ListTile(
-                tileColor: AppColors.white,
-                onTap: () {
-                  controller.getIssueDetail(context, issue.id.toString(),
-                      (value) {
-                    if (value == true) {
-                      openIssueDetail(context, issue.id.toString());
-                    }
-                  });
-                },
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8)),
-                title: Text(
-                  issue.title?.rendered ?? "",
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyMedium
-                      ?.copyWith(color: AppColors.black),
-                  maxLines: 2,
-                ),
-                subtitle: Row(
-                  children: [
-                    Text(
-                      controller.dayDiff(issue.date) == 0
-                          ? "Today"
-                          : "${controller.dayDiff(issue.date)} Days ago",
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelLarge
-                          ?.copyWith(color: AppColors.grey),
-                    ),
-                    const SizedBox(
-                      width: 10,
-                    ),
-                    Image.asset(
-                      issue.issuePriority == "High"
-                          ? highImage
-                          : issue.issuePriority == "Medium"
-                              ? mediumImage
-                              : lowImage,
-                      height: 12,
-                      width: 12,
-                    ),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    Text(
-                      issue.issuePriority ?? "Low",
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: issue.issuePriority == "High"
-                              ? AppColors.red
-                              : issue.issuePriority == "Medium"
-                                  ? AppColors.orange
-                                  : AppColors.primary),
-                    ),
-                    const Spacer(),
-                    Container(
-                      width: 70,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: issue.issueStatus != "1"
-                            ? AppColors.lightRed
-                            : AppColors.lightGreen,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                        child: Center(
-                          child: Text(
-                            issue.issueStatus != "1" ? "Open" : "Resolve",
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            controller.dayDiff(issue.date) == 0
+                                ? "Today"
+                                : "${controller.dayDiff(issue.date)} Days ago",
                             style: Theme.of(context)
                                 .textTheme
                                 .labelLarge
-                                ?.copyWith(
-                                    color: issue.issueStatus != "1"
-                                        ? AppColors.red
-                                        : AppColors.green),
+                                ?.copyWith(color: AppColors.grey),
                           ),
-                        ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Image.asset(
+                            issue.issuePriority == "High"
+                                ? highImage
+                                : issue.issuePriority == "Medium"
+                                    ? mediumImage
+                                    : lowImage,
+                            height: 12,
+                            width: 12,
+                          ),
+                          const SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            issue.issuePriority ?? "Low",
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: issue.issuePriority == "High"
+                                    ? AppColors.red
+                                    : issue.issuePriority == "Medium"
+                                        ? AppColors.orange
+                                        : AppColors.primary),
+                          ),
+          
+                        ],
                       ),
-                    )
-                  ],
-                ),
-              ),
+                      trailing: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          const Icon(Icons.more_horiz),
+                          const SizedBox(height: 7,),
+                          Container(
+                            width: 70,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: issue.issueStatus != "1"
+                                  ? AppColors.lightRed
+                                  : AppColors.lightGreen,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0),
+                              child: Center(
+                                child: Text(
+                                  issue.issueStatus != "1"
+                                      ? "Open"
+                                      : "Resolve",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelLarge
+                                      ?.copyWith(
+                                      color: issue.issueStatus != "1"
+                                          ? AppColors.red
+                                          : AppColors.green),
+                                ),
+                              ),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1289,59 +1316,106 @@ class IssueScreen extends StatelessWidget {
                                         ),
                                         Expanded(
                                             flex: 7,
-                                            child: Row(
+                                            child: Column(
                                               children: [
-                                                Image.asset(
-                                                  locationImage,
-                                                  width: 25,
-                                                  height: 25,
-                                                ),
-                                                const SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Expanded(
-                                                  // width: 180,
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      AppTextFormWidget(
-                                                        hintText:
-                                                            "Select Location",
-                                                        controller: read
-                                                            .locationController,
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.copyWith(
-                                                              fontSize: 14,
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      locationImage,
+                                                      width: 25,
+                                                      height: 25,
+                                                    ),
+                                                    const SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Expanded(
+                                                      // width: 180,
+                                                      child: Column(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          AppTextFormWidget(
+                                                            hintText:
+                                                                "Select Location",
+                                                            controller: read
+                                                                .locationController,
+                                                            style: Theme.of(context)
+                                                                .textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                                  fontSize: 14,
+                                                                ),
+                                                            onChanged: (query) {
+                                                              // read.searchCityList(query);
+                                                            },
+                                                            sufixIcon: Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .all(1.0),
+                                                              child: Image.asset(
+                                                                location2Image,
+                                                                width: 35,
+                                                                height: 35,
+                                                              ),
                                                             ),
-                                                        sufixIcon: Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(1.0),
-                                                          child: Image.asset(
-                                                            location2Image,
-                                                            width: 35,
-                                                            height: 35,
+                                                            hintStyle:
+                                                                const TextStyle(
+                                                              fontSize: 14,
+                                                              fontWeight:
+                                                                  FontWeight.normal,
+                                                            ),
+                                                            // validator: (value) {
+                                                            //   if(value!.isEmpty && value==""){
+                                                            //     return "Please enter Location";
+                                                            //   }
+                                                            // },
                                                           ),
-                                                        ),
-                                                        hintStyle:
-                                                            const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.normal,
-                                                        ),
-                                                        // validator: (value) {
-                                                        //   if(value!.isEmpty && value==""){
-                                                        //     return "Please enter Location";
-                                                        //   }
-                                                        // },
+                                                          Divider(
+                                                            color: AppColors.grey,
+                                                          ),
+
+
+                                                        ],
                                                       ),
-                                                      Divider(
-                                                        color: AppColors.grey,
-                                                      )
-                                                    ],
+                                                    ),
+                                                  ],
+                                                ),
+                                                Visibility(
+                                                  visible: read
+                                                      .locationController.text.isNotEmpty &&
+                                                      controller.searchPlace.length > 1,
+                                                  child: Container(
+                                                   decoration: BoxDecoration(borderRadius: BorderRadius.circular(15)),
+                                                    width: double.infinity,
+                                                    child: ListView.builder(
+                                                        padding: EdgeInsets.zero,
+                                                        shrinkWrap: true,
+                                                        itemCount: controller.searchPlace.length,
+                                                        itemBuilder: (context, index) => ListTile(
+                                                          onTap: () {
+                                                            setState(() {
+                                                              read
+                                                                  .locationController.text =
+                                                                  controller.searchPlace[index].description ??
+                                                                      "";
+
+                                                              // final selectedState = controller.searchPlace[index].;
+
+                                                              // _getLatLang();
+                                                              print("yha se ja rha h");
+
+                                                              setState(() {
+                                                                controller.searchPlace.clear();
+                                                              });
+                                                            });
+                                                          },
+                                                          horizontalTitleGap: 0,
+                                                          title: Text(
+                                                            controller.searchPlace[index].description ?? "",
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        )),
                                                   ),
                                                 ),
                                               ],
@@ -1754,57 +1828,58 @@ class IssueScreen extends StatelessWidget {
                                     // Add your attachment widget here
                                     GestureDetector(
                                       onTap: () {
-                                        showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) =>
-                                              AlertDialog(
-                                            title: Text(
-                                              'Choose Attachment',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headlineLarge,
-                                            ),
-                                            actions: <Widget>[
-                                              // TextButton(
-                                              //   onPressed: () {
-                                              //     controller.pickFile();
-                                              //     Navigator.pop(context);
-                                              //   },
-                                              //   child: Text('File',
-                                              //       style: Theme.of(context)
-                                              //           .textTheme
-                                              //           .titleLarge),
-                                              // ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  controller.pickImage(
-                                                      ImageSource.gallery);
-                                                  Navigator.pop(context);
-                                                  // Get.back();
-                                                },
-                                                child: Text(
-                                                  'Gallery',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge,
-                                                ),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  controller.pickVideo();
-                                                  Navigator.pop(context);
-                                                  // Get.back();
-                                                },
-                                                child: Text(
-                                                  'Video',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleLarge,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        );
+                                        // showDialog(
+                                        //   context: context,
+                                        //   builder: (BuildContext context) =>
+                                        //       AlertDialog(
+                                        //     title: Text(
+                                        //       'Choose Attachment',
+                                        //       style: Theme.of(context)
+                                        //           .textTheme
+                                        //           .headlineLarge,
+                                        //     ),
+                                        //     actions: <Widget>[
+                                        //       // TextButton(
+                                        //       //   onPressed: () {
+                                        //       //     controller.pickFile();
+                                        //       //     Navigator.pop(context);
+                                        //       //   },
+                                        //       //   child: Text('File',
+                                        //       //       style: Theme.of(context)
+                                        //       //           .textTheme
+                                        //       //           .titleLarge),
+                                        //       // ),
+                                        //       TextButton(
+                                        //         onPressed: () async {
+                                        //           controller.pickImage(
+                                        //               ImageSource.gallery);
+                                        //           Navigator.pop(context);
+                                        //           // Get.back();
+                                        //         },
+                                        //         child: Text(
+                                        //           'Gallery',
+                                        //           style: Theme.of(context)
+                                        //               .textTheme
+                                        //               .titleLarge,
+                                        //         ),
+                                        //       ),
+                                        //       TextButton(
+                                        //         onPressed: () async {
+                                        //           controller.pickVideo();
+                                        //           Navigator.pop(context);
+                                        //           // Get.back();
+                                        //         },
+                                        //         child: Text(
+                                        //           'Video',
+                                        //           style: Theme.of(context)
+                                        //               .textTheme
+                                        //               .titleLarge,
+                                        //         ),
+                                        //       ),
+                                        //     ],
+                                        //   ),
+                                        // );
+                                        _imageBottomSheetMenu(context, width, controller);
                                       },
                                       child: Container(
                                         width: 40,
@@ -2100,6 +2175,105 @@ class IssueScreen extends StatelessWidget {
         });
   }
 
+
+
+  void _imageBottomSheetMenu(
+      BuildContext context, width, IssueController controller) {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (builder) {
+          return StatefulBuilder(
+            builder: (context, setState) => ConstrainedBox(
+
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height *
+                    0.4, // Max height 80% of screen height
+              ),
+              child: SingleChildScrollView(
+                  child:Container(
+                    width: width,
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30.0),
+                            topRight: Radius.circular(30.0))),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            height: 20,
+                          ),
+                          Container(
+                            height: 6,
+                            width: 60,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          Text("Attachment",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 10),
+                          ListTile(
+                            onTap: () {
+                              controller.pickImage(ImageSource.camera);
+                              Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(cameraIcon,width: 20,height: 20,),
+                            title: const Text("Take photo"),),
+                          ListTile(
+                            onTap: () {
+                              controller.pickImage(ImageSource.gallery);
+                                            Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(albumIcon,width: 20,height: 20,),
+                            title: const Text("Select Image"),),
+                          ListTile(
+                            onTap: () {
+                              // controller.pickFile();
+                              Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(fileIcon,width: 20,height: 20,),
+                            title: const Text("Upload File"),),
+                          ListTile(
+                            onTap: () {
+                              controller.pickVideo();
+                              Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(videoCamera,width: 20,height: 20,),
+                            title: const Text("add video"),),
+                        ],
+                      ),
+                    ),
+                  )
+              ),
+            ),
+          );
+        });
+  }
+
+
   final settings = RestrictedPositions(
     maxCoverage: -0.1,
     minCoverage: -0.5,
@@ -2286,17 +2460,20 @@ class IssueScreen extends StatelessWidget {
                                 hintStyle: Theme.of(context)
                                     .textTheme
                                     .titleLarge
-                                    ?.copyWith(color: AppColors.primary),
-                                prefixIcon: const Icon(Icons.search),
-                                border: const OutlineInputBorder(),
-                                enabledBorder: const OutlineInputBorder(),
-                                focusedBorder: const OutlineInputBorder()),
+                                    ?.copyWith(color: AppColors.grey),
+                                prefixIcon:  Icon(Icons.search,color: AppColors.grey,),
+                                border:  OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    borderSide: BorderSide(
+                                    color: AppColors.grey)),
+                                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30),borderSide: BorderSide(color: AppColors.grey)),
+                                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(30),borderSide: BorderSide(color: AppColors.grey)),),
                             onChanged: (value) => _filterItems(value),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
-                          Align(
+                          const Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
                               "All Filters",
@@ -2430,10 +2607,10 @@ class IssueScreen extends StatelessWidget {
                                 focusedBorder: const OutlineInputBorder()),
                             onChanged: (value) => _filterItems(value),
                           ),
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
-                          Align(
+                          const Align(
                             alignment: Alignment.centerLeft,
                             child: Text(
                               "All Filters",

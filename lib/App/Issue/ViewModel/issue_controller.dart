@@ -22,6 +22,7 @@ import '../Model/detail_comment_model.dart';
 import '../Model/issue_category_model.dart';
 import '../Model/issue_detail_model.dart';
 import '../Model/issue_model.dart';
+import '../Model/palaces_model.dart';
 import '../Model/report_assign_model.dart';
 import '../View/issue_detail_sceen.dart';
 import '../View/issue_screen.dart';
@@ -44,10 +45,9 @@ class IssueController extends ChangeNotifier {
   TimeOfDay selectedTime = TimeOfDay.now();
   List<bool> expandedStates = [];
 
-  List<bool> checkboxStates =[];
+  List<bool> checkboxStates = [];
 
-
-  updateFocusNode(){
+  updateFocusNode() {
     commentController.clear();
     commentImage.clear();
     commentFiles.clear();
@@ -57,11 +57,10 @@ class IssueController extends ChangeNotifier {
 
   int isIssue = 0;
 
-  updateIssueT(value){
+  updateIssueT(value) {
     isIssue = value;
     notifyListeners();
   }
-
 
   Future<void> selectDate(
     BuildContext context,
@@ -118,16 +117,13 @@ class IssueController extends ChangeNotifier {
     final result = await issueApi.issueCategory(context);
     if (result != null) {
       categoryList = result.data ?? [];
-      checkboxStates=  List.generate(categoryList.length, (index) => false);
+      checkboxStates = List.generate(categoryList.length, (index) => false);
       notifyListeners();
     }
   }
 
-
-
-  updateCheckBoxIndex(index,value){
-    
-    checkboxStates[index] =value;
+  updateCheckBoxIndex(index, value) {
+    checkboxStates[index] = value;
     notifyListeners();
 
     // if(filterCategoryList.isNotEmpty) {
@@ -142,13 +138,10 @@ class IssueController extends ChangeNotifier {
     //   // filterIssueList.clear();
     //   notifyListeners();
     // }
-    
   }
 
-
   List<IssueListModel> issueList = [];
-  
-  
+
   List<IssueListModel> filterIssueList = [];
 
   List<IssueListModel> archiveList = [];
@@ -177,15 +170,18 @@ class IssueController extends ChangeNotifier {
     pageNo1++;
     notifyListeners();
   }
-  bool taskLoad=false;
-  getIssueList(BuildContext context,) async {
-    if(pageNo1==1) {
+
+  bool taskLoad = false;
+
+  getIssueList(
+    BuildContext context,
+  ) async {
+    if (pageNo1 == 1) {
       taskLoad = true;
     }
     final result = await issueApi.issueListing(context, pageNo1);
     if (result != null) {
-
-      if(pageNo1 ==1) {
+      if (pageNo1 == 1) {
         issueList.clear();
         archiveList.clear();
         issueList.addAll(result);
@@ -197,8 +193,8 @@ class IssueController extends ChangeNotifier {
       }
       taskLoad = false;
       notifyListeners();
-    }else {
-      issueList.addAll(result ??[]);
+    } else {
+      issueList.addAll(result ?? []);
       taskLoad = false;
       notifyListeners();
     }
@@ -242,11 +238,11 @@ class IssueController extends ChangeNotifier {
     notifyListeners();
   }
 
-  setCategoryName(id, name,data) {
+  setCategoryName(id, name, data) {
     // selectedCountryId = value;
     selectedCategory = name;
     selectedCategoryId = id;
-    selectedCategoryData=data;
+    selectedCategoryData = data;
     print(selectedCategory);
     notifyListeners();
   }
@@ -279,17 +275,17 @@ class IssueController extends ChangeNotifier {
     {"id": 3, "name": "Low", "img": lowImage, "color": AppColors.primary},
   ];
 
-  bool isValid=false;
-  bool isValidPriority=false;
-  bool isValidNotify=false;
+  bool isValid = false;
+  bool isValidPriority = false;
+  bool isValidNotify = false;
 
-  updateGroupValue(type,value){
-    if(type==1){
-      isValidPriority=value;
-    }else if(type==2){
-      isValid=value;
-    }else{
-    isValidNotify=value;
+  updateGroupValue(type, value) {
+    if (type == 1) {
+      isValidPriority = value;
+    } else if (type == 2) {
+      isValid = value;
+    } else {
+      isValidNotify = value;
     }
 
     notifyListeners();
@@ -363,10 +359,10 @@ class IssueController extends ChangeNotifier {
   }
 
   final ImagePicker _picker = ImagePicker();
-    List<File> images = [];
-    List<String> commentImage = [];
-   List<File> files = [];
-   List<String> commentFiles = [];
+  List<File> images = [];
+  List<String> commentImage = [];
+  List<File> files = [];
+  List<String> commentFiles = [];
   VideoPlayerController? vController;
   VideoPlayerController? vPlayer;
 
@@ -384,18 +380,18 @@ class IssueController extends ChangeNotifier {
   Future<void> pickCommentImage(ImageSource source) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-        commentImage.add(pickedFile.path);
-        notifyListeners();
-
+      commentImage.add(pickedFile.path);
+      notifyListeners();
     }
   }
-   XFile? video;
-  bool videoLoader = false;
-  Future<void> pickVideo() async {
 
-     video = await _picker.pickVideo(source: ImageSource.gallery);
+  XFile? video;
+  bool videoLoader = false;
+
+  Future<void> pickVideo() async {
+    video = await _picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
-      videoLoader= true;
+      videoLoader = true;
       // Compress the video
       MediaInfo? compressedVideo = await VideoCompress.compressVideo(
         video!.path,
@@ -406,14 +402,15 @@ class IssueController extends ChangeNotifier {
 
       print("videoFile====$videoFile");
       if (compressedVideo != null) {
-        videoFile = File(compressedVideo.path!); // Use the path of the compressed video
+        videoFile =
+            File(compressedVideo.path!); // Use the path of the compressed video
         VideoCompress.cancelCompression();
         vController = VideoPlayerController.file(videoFile!)
           ..initialize().then((_) {
             vController!.pause();
             notifyListeners();
           });
-        videoLoader= false;
+        videoLoader = false;
         notifyListeners();
       }
       notifyListeners();
@@ -424,6 +421,7 @@ class IssueController extends ChangeNotifier {
   late Future<void> _initializeVideoPlayerFuture;
 
   VideoPlayerController get viController => _controller;
+
   Future<void> get initializeVideoPlayerFuture => _initializeVideoPlayerFuture;
 
   VideoPlayerProvider(String videoUrl) {
@@ -469,15 +467,19 @@ class IssueController extends ChangeNotifier {
     if (result == true) {
       print(true);
       onResponse(true);
-      pageNo1=1;
+      pageNo1 = 1;
       getIssueList(context);
       var homeController = Provider.of<HomeController>(context, listen: false);
       homeController.getHomeData(context);
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Comment added successfully",style: Theme.of(context).textTheme.labelLarge,),
-            backgroundColor: AppColors.primary,
-          ),);
+        SnackBar(
+          content: Text(
+            "Comment added successfully",
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+          backgroundColor: AppColors.primary,
+        ),
+      );
       notifyListeners();
     }
   }
@@ -491,7 +493,6 @@ class IssueController extends ChangeNotifier {
   List<String> issueDetailImage = [];
   List<String> issueDetailVideo = [];
   List<QuestionsAnswers> questionsAnswers = [];
-
 
   getIssueDetail(
       BuildContext context, String id, ValueSetter<bool> onResponse) async {
@@ -507,7 +508,7 @@ class IssueController extends ChangeNotifier {
           : issueData!.issueVideos!.split(",");
       questionsAnswers = issueData?.questionsAnswers ?? [];
 
-      if(issueData?.issueLocation!="") {
+      if (issueData?.issueLocation != "") {
         getLatLongFromAddress(issueData?.issueLocation ?? "");
       }
 
@@ -517,20 +518,19 @@ class IssueController extends ChangeNotifier {
       notifyListeners();
     }
   }
+
   List<CommentData> all = [];
   List<CommentData> commentData = [];
   List<CommentData> historyComment = [];
 
-  getAllComment( BuildContext context, String id)async{
-
+  getAllComment(BuildContext context, String id) async {
     commentData.clear();
     all.clear();
     historyComment.clear();
 
     final allComment = await issueApi.getDetailComment(context, id);
-    if(allComment != null)  {
+    if (allComment != null) {
       if (allComment.data != []) {
-
         all = allComment.data ?? [];
         commentData = allComment.data!
             .where((element) => element.commentType == "comment")
@@ -540,16 +540,26 @@ class IssueController extends ChangeNotifier {
             .toList();
         notifyListeners();
       }
-    }else
-    {
+    } else {
       all = [];
       commentData = [];
       historyComment = [];
       notifyListeners();
     }
-
   }
 
+  searchCityList(String query) async {
+    final res = await issueApi.searchAutocomplete(query);
+    if (res != null) {
+      searchPlace = res.predictions ?? [];
+
+      notifyListeners();
+    }
+
+    // return _allJobModel;
+  }
+
+  List<Predictions> searchPlace = [];
 
   List<TextEditingController> controllerList = [];
   List<bool> _showSuffixIcon = [];
@@ -603,9 +613,8 @@ class IssueController extends ChangeNotifier {
       onResponse(true);
       getAllComment(context, data.postId);
 
-
       notifyListeners();
-    }else{
+    } else {
       commentAdded = false;
       onResponse(false);
       getAllComment(context, data.postId);
@@ -626,9 +635,8 @@ class IssueController extends ChangeNotifier {
     }
   }
 
-
   final Completer<GoogleMapController> controller =
-  Completer<GoogleMapController>();
+      Completer<GoogleMapController>();
   GoogleMapController? mapController;
   Map<MarkerId, Marker> markers = <MarkerId, Marker>{};
   Location? location;
@@ -638,29 +646,29 @@ class IssueController extends ChangeNotifier {
     try {
       List<Location> locations = await locationFromAddress(address);
       if (locations.isNotEmpty) {
-         location = locations.first;
-        print('Latitude: ${location?.latitude}, Longitude: ${location?.longitude}');
-     notifyListeners();
+        location = locations.first;
+        print(
+            'Latitude: ${location?.latitude}, Longitude: ${location?.longitude}');
+        notifyListeners();
       }
     } catch (e) {
       print('Error occurred: $e');
     }
   }
 
-
   onMapCreated(GoogleMapController controller) async {
     mapController = controller;
     // final Uint8List? markerIcon = await getBytesFromAsset(parkingIcon, 25);
     final marker = Marker(
       icon: BitmapDescriptor.defaultMarker,
-      markerId: MarkerId( "point1"),
+      markerId: MarkerId("point1"),
       position: LatLng(
-          location!.latitude,
+        location!.latitude,
         location!.longitude,
       ),
     );
 
-    markers[MarkerId( "point1")] = marker;
+    markers[MarkerId("point1")] = marker;
     notifyListeners();
   }
 
@@ -674,23 +682,16 @@ class IssueController extends ChangeNotifier {
         .asUint8List();
   }
 
-  int selectedActivityIndex=0;
-  updateActivityIndex(value){
-    selectedActivityIndex= value;
+  int selectedActivityIndex = 0;
+
+  updateActivityIndex(value) {
+    selectedActivityIndex = value;
     notifyListeners();
   }
-  List<Map<String,dynamic>> list=[
-    {
-      "id":1,
-      "title":"All"
-    },
-    {
-      "id":2,
-      "title":"Comment"
-    },
-    {
-      "id":3,
-      "title":"History"
-    },
+
+  List<Map<String, dynamic>> list = [
+    {"id": 1, "title": "All"},
+    {"id": 2, "title": "Comment"},
+    {"id": 3, "title": "History"},
   ];
 }

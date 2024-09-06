@@ -1,7 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:union_up/App/Issue/ViewModel/issue_controller.dart';
 import 'package:union_up/App/Task/ViewModel/controller.dart';
 import 'package:union_up/Common/image_path.dart';
 import 'package:union_up/Widget/app_text_field.dart';
@@ -24,6 +23,7 @@ class TaskDetailScreen extends StatelessWidget {
 
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
+            toolbarHeight: 90,
             leading: Row(
               children: [
                 const SizedBox(
@@ -37,21 +37,22 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(
                   width: 5,
                 ),
+
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    "Task Detail",
+                    "Task Details",
                     textAlign: TextAlign.center,
                     style: Theme.of(context)
                         .textTheme
-                        .titleMedium
+                        .headlineMedium
                         ?.copyWith(color: AppColors.black),
                   ),
                 ),
               ],
             ),
             centerTitle: false,
-            leadingWidth: 150,
+            leadingWidth: 250,
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(20.0),
               child: Align(
