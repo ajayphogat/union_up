@@ -5,9 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:union_up/App/Bottom/View/bottom_bar_screen.dart';
+import 'package:union_up/App/NoInternet/connectivity_checker.dart';
 
 import 'App/Auth/View/login_screen.dart';
 import 'App/Auth/ViewModel/auth_controller.dart';
+import 'App/Dispute/ViewModel/dispute_controller.dart';
+import 'App/Feed/ViewModel/feed_controller.dart';
 import 'App/Home/ViewModel/home_controller.dart';
 import 'App/Issue/ViewModel/issue_controller.dart';
 import 'App/More/ViewModel/more_controller.dart';
@@ -16,15 +19,6 @@ import 'Common/image_path.dart';
 import 'Config/shared_prif.dart';
 import 'Config/theme.dart';
 
-
-
-// class MyHttpOverrides extends HttpOverrides {
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context) {
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback = (X509Certificate cert, String host, int port) => true;
-//   }
-// }
 
 
 class MyHttpOverrides extends HttpOverrides{
@@ -47,8 +41,7 @@ void main()async {
     statusBarBrightness: Brightness.light, // Status bar brightness for iOS
     systemNavigationBarColor: Colors.white, // Color of the system navigation bar (Android)
     systemNavigationBarIconBrightness: Brightness.dark,
-    systemStatusBarContrastEnforced: true,
-    // Brightness of navigation bar icons (Android)
+    systemStatusBarContrastEnforced: true// Brightness of navigation bar icons (Android)
   ));
   await SharedStorage.init();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -67,6 +60,10 @@ void main()async {
         ),
         ChangeNotifierProvider<MoreController>(create: (context) => MoreController(),
         ),
+        ChangeNotifierProvider<DisputeController>(create: (context) => DisputeController(),
+        ),
+        ChangeNotifierProvider<FeedController>(create: (context) => FeedController(),
+        ),
       ],
       child: const MyApp()));
 }
@@ -76,6 +73,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    initNoInternetListener(context);
     return MaterialApp(
       title: 'Flutter Demo',
       debugShowCheckedModeBanner: false,

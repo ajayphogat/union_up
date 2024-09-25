@@ -4,6 +4,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:union_up/App/Bottom/View/bottom_bar_screen.dart';
 
+import '../App/Dispute/View/dispute_screen.dart';
+import '../App/Feed/View/all_comment_screen.dart';
 import '../App/Home/View/all_group_event_screen.dart';
 import '../App/Home/View/all_task_screen.dart';
 import '../App/Issue/Model/issue_model.dart';
@@ -30,6 +32,14 @@ void openAllTaskScreen(BuildContext context) {
 }
 void openAllGroupEventScreen(BuildContext context,list,title) {
   openScreenAsPlatformWiseRoute(context,  AllGroupEventScreen(list:list ,title: title,));
+}
+
+void openAllCommentScreen(BuildContext context) {
+  openScreenAsPlatformWiseRoute(context,  const AllCommentScreen());
+}
+
+void openDisputeScreen(BuildContext context) {
+  openScreenAsPlatformWiseRoute(context,  const DisputeScreen());
 }
 
 

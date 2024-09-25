@@ -38,6 +38,18 @@ class IssueController extends ChangeNotifier {
   TextEditingController secondAnswerController = TextEditingController();
 
   TextEditingController commentController = TextEditingController();
+  TextEditingController replyCommentController = TextEditingController();
+
+  /// edit detail controller
+  // TextEditingController editDateToController = TextEditingController();
+
+  TextEditingController editDateToController = TextEditingController();
+  TextEditingController edittitleController = TextEditingController();
+  TextEditingController editdescriptionController = TextEditingController();
+  TextEditingController editlocationController = TextEditingController();
+  TextEditingController editfirstAnswerController = TextEditingController();
+  TextEditingController editsecondAnswerController = TextEditingController();
+
   FocusNode commentFocusMode = FocusNode();
   final issueAddFormKey = GlobalKey<FormState>();
   DateTime selectedDate = DateTime.now();
@@ -46,6 +58,28 @@ class IssueController extends ChangeNotifier {
   List<bool> expandedStates = [];
 
   List<bool> checkboxStates = [];
+
+  bool isTaskDetailOpening = false;
+
+  int? _activeReplyIndex;
+
+  set activeReplyIndex(int? index) {
+    if (_activeReplyIndex == index) {
+      replyCommentController.clear();
+    } else {
+      _activeReplyIndex = index;
+      replyCommentController.clear();
+    }
+
+    notifyListeners();
+  }
+
+  int? get activeReplyIndex => _activeReplyIndex;
+
+  updateRoute(value) {
+    isTaskDetailOpening = value;
+    notifyListeners();
+  }
 
   updateFocusNode() {
     commentController.clear();
@@ -61,16 +95,18 @@ class IssueController extends ChangeNotifier {
     isIssue = value;
     notifyListeners();
   }
+  DateTime? initialDate;
+  DateTime firstDate =DateTime.now();
+  DateTime defaultDate =DateTime.now();
 
   Future<void> selectDate(
-    BuildContext context,
+    BuildContext context,type
   ) async {
-    DateTime? initialDate;
-    DateTime? firstDate;
+
 
     initialDate = selectedDate;
 
-    firstDate = DateTime.now();
+    // firstDate = DateTime.now();
 
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -95,7 +131,13 @@ class IssueController extends ChangeNotifier {
 
     if (picked != null) {
       selectedDate = picked;
-      dateToController.text = formatDate(picked);
+
+      if(type==0) {
+        dateToController.text = formatDate(picked);
+      }else{
+        editDateToController.text = formatDate(picked);
+      }
+
       notifyListeners();
     }
   }
@@ -105,12 +147,19 @@ class IssueController extends ChangeNotifier {
     return formatter.format(date);
   }
 
+  editFormatDate(DateTime date) {
+    final DateFormat formatter = DateFormat('MMMM d, yyyy');
+    dateToController.text = formatter.format(date);
+    notifyListeners();
+  }
+
   List<CategoryData> categoryList = [];
   List<CategoryData> filterCategoryList = [];
   List<AssignReport> assignReport = [];
   String? selectedCountryId;
   String? selectedCategory;
   CategoryData? selectedCategoryData;
+
   String? selectedCategoryId;
 
   getCategory(BuildContext context) async {
@@ -167,7 +216,8 @@ class IssueController extends ChangeNotifier {
   setPage() {
     pageIncrease = true;
     print("pageNo1====$pageNo1");
-    pageNo1++;
+    // pageNo1++;
+    pageNo1 = 1;
     notifyListeners();
   }
 
@@ -176,25 +226,29 @@ class IssueController extends ChangeNotifier {
   getIssueList(
     BuildContext context,
   ) async {
+    dateToController.text=  formatDate(defaultDate);
     if (pageNo1 == 1) {
       taskLoad = true;
     }
+    issueList.clear();
+    archiveList.clear();
     final result = await issueApi.issueListing(context, pageNo1);
     if (result != null) {
       if (pageNo1 == 1) {
         issueList.clear();
         archiveList.clear();
-        issueList.addAll(result);
-        archiveList.addAll(result
-            .where(
-              (element) => element.issueArchive == "1",
-            )
-            .toList());
+        issueList = result;
+        // archiveList.addAll(result
+        //     .where(
+        //       (element) => element.issueArchive == "1",
+        //     )
+        //     .toList());
       }
       taskLoad = false;
       notifyListeners();
     } else {
-      issueList.addAll(result ?? []);
+      // issueList.addAll(result ?? []);
+      issueList = result ?? [];
       taskLoad = false;
       notifyListeners();
     }
@@ -247,7 +301,7 @@ class IssueController extends ChangeNotifier {
     notifyListeners();
   }
 
-  String selectedIssueStatus = "Open";
+  String? selectedIssueStatus;
 
   updateIssueStatus(value) {
     selectedIssueStatus = value;
@@ -258,14 +312,14 @@ class IssueController extends ChangeNotifier {
     {
       "id": 1,
       "name": "Open",
-      "color": AppColors.lightGreen,
-      "txt_clr": AppColors.green,
+      "color": AppColors.lightRed,
+      "txt_clr": AppColors.red,
     },
     {
       "id": 2,
       "name": "Close",
-      "color": AppColors.lightRed,
-      "txt_clr": AppColors.red,
+      "color": AppColors.lightGreen,
+      "txt_clr": AppColors.green,
     },
   ];
 
@@ -294,6 +348,7 @@ class IssueController extends ChangeNotifier {
   String? selectedPriority;
 
   String? selectedReportIs;
+  AssignReport? selectedReportUser;
   String selectedReportId = "";
   List<AssignReport> selectedAssignNotify = [];
 
@@ -308,16 +363,21 @@ class IssueController extends ChangeNotifier {
     notifyListeners(); // This will notify all listeners to rebuild
   }
 
-  List<String> selectedReports = [];
+  List<AssignReport> selectedReports = [];
+
+  // List<String> selectedReports = [];
   List<String> selectedReportsId = [];
 
-  void toggleReportSelection(String image) {
-    if (selectedReports.contains(image)) {
-      selectedReports.remove(image);
-    } else {
-      selectedReports.add(image);
-      print("--=-=-=-=" + selectedReports[0]);
+
+
+  void toggleReportSelection() {
+    selectedReports.clear();
+    for (var i = 0; i < selectedReportsId.length; i++) {
+      selectedReports.addAll(assignReport
+          .where((element) => element.id == int.parse(selectedReportsId[i]))
+          .toList());
     }
+
     notifyListeners();
   }
 
@@ -327,6 +387,7 @@ class IssueController extends ChangeNotifier {
     } else {
       selectedReportsId.add(id);
     }
+    toggleReportSelection();
     notifyListeners();
   }
 
@@ -337,11 +398,26 @@ class IssueController extends ChangeNotifier {
     selectedPriority = value;
     notifyListeners();
   }
+  String? selectedId;
 
-  setReport(value) {
+
+  setReport(value,   cate
+  ) {
+    selectedId = cate.toString();
+    selectedReportId =cate.toString();
     selectedReportIs = value;
+    if(cate==null){
+      selectedReportUser= null;
+    }else {
+      selectedReportUser = assignReport
+          .where(
+            (element) => element.id.toString() == cate.toString(),
+          )
+          .first;
+    }
     notifyListeners();
   }
+
 
   setReportId(value) {
     selectedReportId = value;
@@ -359,19 +435,24 @@ class IssueController extends ChangeNotifier {
   }
 
   final ImagePicker _picker = ImagePicker();
-  List<File> images = [];
+  List<String> images = [];
   List<String> commentImage = [];
   List<File> files = [];
   List<String> commentFiles = [];
   VideoPlayerController? vController;
+  VideoPlayerController? vControllerDetail;
   VideoPlayerController? vPlayer;
 
   File? videoFile;
 
-  Future<void> pickImage(ImageSource source) async {
+  Future<void> pickImage(ImageSource source,type) async {
     final pickedFile = await _picker.pickImage(source: source);
     if (pickedFile != null) {
-      images.add(File(pickedFile.path));
+      if(type==0) {
+        images.add(pickedFile.path);
+      }else{
+        imagesDetail.add(pickedFile.path);
+      }
 
       notifyListeners();
     }
@@ -388,7 +469,7 @@ class IssueController extends ChangeNotifier {
   XFile? video;
   bool videoLoader = false;
 
-  Future<void> pickVideo() async {
+  Future<void> pickVideo(type) async {
     video = await _picker.pickVideo(source: ImageSource.gallery);
     if (video != null) {
       videoLoader = true;
@@ -402,42 +483,57 @@ class IssueController extends ChangeNotifier {
 
       print("videoFile====$videoFile");
       if (compressedVideo != null) {
-        videoFile =
-            File(compressedVideo.path!); // Use the path of the compressed video
-        VideoCompress.cancelCompression();
-        vController = VideoPlayerController.file(videoFile!)
-          ..initialize().then((_) {
-            vController!.pause();
-            notifyListeners();
-          });
-        videoLoader = false;
-        notifyListeners();
+
+       if(type==0){
+         videoFile = File(compressedVideo.path!); // Use the path of the compressed video
+         VideoCompress.cancelCompression();
+         vController = VideoPlayerController.file(videoFile!)
+           ..initialize().then((_) {
+             vController!.pause();
+             notifyListeners();
+           });
+         videoLoader = false;
+         notifyListeners();
+       }else{
+         videoFileDetail = File(compressedVideo.path!); // Use the path of the compressed video
+         VideoCompress.cancelCompression();
+         vControllerDetail = VideoPlayerController.file(videoFileDetail!)
+           ..initialize().then((_) {
+             vControllerDetail!.pause();
+             notifyListeners();
+           });
+         videoLoader = false;
+         notifyListeners();
+       }
       }
       notifyListeners();
     }
   }
 
-  late VideoPlayerController _controller;
-  late Future<void> _initializeVideoPlayerFuture;
+  final List<VideoPlayerController> _videoControllers = [];
+  final List<Future<void>> _initializeVideoFutures = [];
 
-  VideoPlayerController get viController => _controller;
+  List<VideoPlayerController> get videoControllers => _videoControllers;
 
-  Future<void> get initializeVideoPlayerFuture => _initializeVideoPlayerFuture;
+  List<Future<void>> get initializeVideoFutures => _initializeVideoFutures;
 
-  VideoPlayerProvider(String videoUrl) {
-    _controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
-    _initializeVideoPlayerFuture = _controller.initialize();
-    _controller.setLooping(true);
+  void initializeControllers(List<String> videoUrls) {
+    for (var videoUrl in videoUrls) {
+      var controller = VideoPlayerController.networkUrl(Uri.parse(videoUrl));
+      _videoControllers.add(controller);
+      _initializeVideoFutures.add(controller.initialize());
+      controller.setLooping(true);
+    }
     notifyListeners();
   }
 
-  void play() {
-    _controller.play();
+  void play(int index) {
+    _videoControllers[index].play();
     notifyListeners();
   }
 
-  void pause() {
-    _controller.pause();
+  void pause(int index) {
+    _videoControllers[index].pause();
     notifyListeners();
   }
 
@@ -460,26 +556,57 @@ class IssueController extends ChangeNotifier {
     }
   }
 
-  addIssue(BuildContext context, AddIssueModel data,
-      ValueSetter<bool> onResponse) async {
+  bool isAddIssue = false;
+  addIssue(BuildContext context, AddIssueModel data, ValueSetter<bool> onResponse) async {
+    isAddIssue =true;
     final result = await issueApi.addIssue(context, data);
+
+    if (result == true) {
+      print(true);
+      onResponse(true);
+      isAddIssue =false;
+      pageNo1 = 1;
+      getIssueList(context);
+      var homeController = Provider.of<HomeController>(context, listen: false);
+      homeController.getHomeData(context);
+      // ScaffoldMessenger.of(context).showSnackBar(
+      //   SnackBar(
+      //     content: Padding(
+      //       padding: const EdgeInsets.all(12.0),
+      //       child: Text(
+      //         "Issue added successfully",
+      //         style: Theme.of(context).textTheme.labelLarge,
+      //       ),
+      //     ),
+      //     backgroundColor: AppColors.primary,
+      //   ),
+      // );
+
+      snackbar(context, "Issue added successfully");
+      notifyListeners();
+    }else{
+      isAddIssue =false;
+      onResponse(false);
+      notifyListeners();
+    }
+  }
+
+
+  upDateIssue(BuildContext context, AddIssueModel data,postId, ValueSetter<bool> onResponse) async {
+    final result = await issueApi.updateIssue(context, data,postId);
 
     if (result == true) {
       print(true);
       onResponse(true);
       pageNo1 = 1;
       getIssueList(context);
+      getIssueDetail(context, postId, onResponse);
       var homeController = Provider.of<HomeController>(context, listen: false);
       homeController.getHomeData(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Comment added successfully",
-            style: Theme.of(context).textTheme.labelLarge,
-          ),
-          backgroundColor: AppColors.primary,
-        ),
-      );
+
+
+
+      snackbar(context, "Issue Updated successfully");
       notifyListeners();
     }
   }
@@ -548,11 +675,68 @@ class IssueController extends ChangeNotifier {
     }
   }
 
+  String convertDate(String date) {
+    DateTime dateTime;
+
+    try {
+      // Try parsing ISO 8601 format (e.g., "2024-08-12T05:30:56")
+      dateTime = DateTime.parse(date);
+    } catch (e) {
+      try {
+        // Try parsing "MM/dd/yyyy hh:mm a" (e.g., "09/03/2024 10:59 AM")
+        dateTime = DateFormat("MM/dd/yyyy hh:mm a").parse(date);
+      } catch (e) {
+        try {
+          // Try parsing "MM/dd/yyyy" (e.g., "09/05/2024")
+          dateTime = DateFormat("MM/dd/yyyy").parse(date);
+        } catch (e) {
+          try {
+            // Try parsing "MMMM d, yyyy" (e.g., "September 10, 2024")
+            dateTime = DateFormat("MMMM d, yyyy").parse(date);
+          } catch (e) {
+            try {
+              // Try parsing "dd-MM-yyyy" (e.g., "24-9-2024")
+              dateTime = DateFormat("dd-MM-yyyy").parse(date);
+            } catch (e) {
+              return "Invalid Date Format";
+            }
+          }
+        }
+      }
+    }
+
+    // Calculate the difference from today
+    DateTime today = DateTime.now();
+    Duration difference = today.difference(dateTime);
+
+    // Format the date to "MMM d, yyyy" (e.g., "Sep 24, 2024")
+    final DateFormat formatter = DateFormat('MMM d, yyyy');
+    final String formattedDate = formatter.format(dateTime);
+
+    // Return the formatted date and the difference in days
+    String differenceText = _formatDifference(difference);
+
+    return differenceText;
+  }
+
+  String _formatDifference(Duration difference) {
+    if (difference.isNegative) {
+      difference = difference.abs();
+      return '${difference.inDays} days from now';
+    } else if (difference.inDays == 0) {
+      return 'Today';
+    } else {
+      // The date is in the past
+      return '${difference.inDays} days ago';
+    }
+  }
+
   searchCityList(String query) async {
+    print("query2===$query");
     final res = await issueApi.searchAutocomplete(query);
     if (res != null) {
       searchPlace = res.predictions ?? [];
-
+      print("location length ==${searchPlace.length}");
       notifyListeners();
     }
 
@@ -608,15 +792,16 @@ class IssueController extends ChangeNotifier {
 
     if (result == true) {
       print(true);
-      commentAdded = false;
+
       answerFocusNode.requestFocus();
       onResponse(true);
+      commentAdded = false;
       getAllComment(context, data.postId);
 
       notifyListeners();
     } else {
-      commentAdded = false;
       onResponse(false);
+      commentAdded = false;
       getAllComment(context, data.postId);
       notifyListeners();
     }
@@ -628,7 +813,7 @@ class IssueController extends ChangeNotifier {
     var result = await issueApi.addArchive(context, id);
 
     if (result == true) {
-      // getIssueList(context);
+      getIssueList(context);
 
       onResponse(true);
       notifyListeners();
@@ -694,4 +879,109 @@ class IssueController extends ChangeNotifier {
     {"id": 2, "title": "Comment"},
     {"id": 3, "title": "History"},
   ];
+
+  CategoryData? selectedCategoryDataDetail;
+  String? selectedPriorityDetail;
+  String? selectedReportIsDetail;
+  List<String> selectedReportsIdDetail = [];
+  List<AssignReport> selectedReportsDetail = [];
+
+  List<String> imagesDetail = [];
+  List<File> filesDetail = [];
+  File? videoFileDetail;
+
+  void toggleReportSelectionDetail() {
+    // selectedReportsDetail.clear();
+    for (var i = 0; i < selectedReportsIdDetail.length; i++) {
+      selectedReportsDetail.addAll(assignReport
+          .where((element) => element.id == int.parse(selectedReportsIdDetail[i]))
+          .toList());
+    }
+
+    notifyListeners();
+  }
+
+  void toggleReportSelection1Deatil(String id) {
+    if (selectedReportsIdDetail.contains(id)) {
+      selectedReportsIdDetail.remove(id);
+    } else {
+      selectedReportsIdDetail.add(id);
+    }
+    toggleReportSelection();
+    notifyListeners();
+  }
+
+
+
+  editDetail(date, title, subtitle, status, category, priority,
+      reportToDelegate, notifySef, location,question1,question2) {
+
+
+
+    editDateToController.text = date;
+    edittitleController.text = title;
+    editdescriptionController.text = subtitle;
+    selectedIssueStatus = status;
+    selectedCategory = category;
+    // selectedPriority=priority;
+    locationController.text = location;
+    selectedReportsIdDetail = notifySef;
+    editsecondAnswerController.text =question1;
+    editfirstAnswerController.text =question2;
+
+    // DateFormat dateFormat = DateFormat('MMMM d, yyyy'); // Matching the format of your date string
+
+    DateFormat dateFormat = DateFormat('d-MMMM-yyyy');
+    DateTime parsedDate = dateFormat.parse(date);
+
+    print("p====$parsedDate");
+    firstDate=parsedDate;
+    selectedDate =parsedDate;
+    print(reportToDelegate + "   ==jhcbsdjhvjhdsb=====");
+    for (var i = 0; i < categoryList.length; i++) {
+      selectedCategoryDataDetail = categoryList
+          .where((element) => element.issueCategoryName == category)
+          .first;
+    }
+
+    if(priority != "") {
+      for (var i = 0; i < priorityList.length; i++) {
+        selectedPriorityDetail = priorityList
+            .where((element) =>
+                element['name'].toUpperCase() == priority.toUpperCase())
+            .first['name']
+            .toString();
+      }
+    }else{
+      selectedPriorityDetail = null;
+    }
+    if(reportToDelegate!= "") {
+      for (var i = 0; i < assignReport.length; i++) {
+        selectedReportIsDetail = assignReport
+            .where((element) =>
+                element.id.toString() == reportToDelegate.toString())
+            .first
+            .displayName
+            .toString();
+      }
+    }else{
+      selectedReportIsDetail = null;
+    }
+    print(notifySef[0]);
+
+    if(notifySef != []) {
+      toggleReportSelectionDetail();
+    }
+    notifyListeners();
+  }
+
+  setPriorityDetail(value) {
+    selectedPriorityDetail = value;
+    notifyListeners();
+  }
+
+  setReportDetail(value) {
+    selectedReportIsDetail = value;
+    notifyListeners();
+  }
 }

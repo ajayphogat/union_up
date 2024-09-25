@@ -6,6 +6,7 @@ import 'package:union_up/App/Task/View/task_screen.dart';
 import '../../../Common/app_colors.dart';
 import '../../../Common/image_path.dart';
 import '../../../Config/shared_prif.dart';
+import '../../Feed/View/feed_screen.dart';
 import '../../Home/View/home_screen.dart';
 import '../../Home/ViewModel/home_controller.dart';
 import '../../Issue/View/issue_screen.dart';
@@ -34,7 +35,7 @@ class _BottomBarScreenState extends State<BottomBarScreen>
   final List _widgets = [
     const HomeScreen(),
     // Container(),
-    Container(),
+    FeedScreen(),
     IssueScreen(),
     const TaskScreen(),
     MoreScreen(),
@@ -129,9 +130,9 @@ class _BottomBarScreenState extends State<BottomBarScreen>
             selectedFontSize: 20,
             unselectedFontSize: 20,
             onTap: (index) {
-              if (index != 2) {
+              // if (index != 2) {
                 _onItemTapped(index);
-              }
+              // }
             },
             items: <BottomNavigationBarItem>[
               BottomNavigationBarItem(
@@ -154,11 +155,12 @@ class _BottomBarScreenState extends State<BottomBarScreen>
                 ),
                 label: 'Feeds',
               ),
+
               const BottomNavigationBarItem(
                 icon: SizedBox(
                   height: 22,
                 ),
-                label: 'Issue',
+                label: 'Issues',
               ),
               BottomNavigationBarItem(
                 icon: Image.asset(
@@ -188,13 +190,13 @@ class _BottomBarScreenState extends State<BottomBarScreen>
             bottom: 30,
             left: MediaQuery.of(context).size.width / 2 - 30,
             child: Container(
-              width: 56,
-              height: 56,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
                   color: AppColors.white,
                   borderRadius: BorderRadius.circular(50)),
               child: Padding(
-                padding: const EdgeInsets.all(6.0),
+                padding: const EdgeInsets.all(8.0),
                 child: FloatingActionButton(
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50)),
@@ -205,7 +207,7 @@ class _BottomBarScreenState extends State<BottomBarScreen>
                   child: const Icon(
                     Icons.error_outline,
                     color: Colors.white,
-                    size: 25,
+                    size: 30,
                   ),
                 ),
               ),

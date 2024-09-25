@@ -45,7 +45,7 @@ class CommentData {
   String? userId;
   String? userImage;
   List<CommentMeta>? commentMeta;
-  List<Replies>? replies;
+  List<CommentData>? replies;
 
   CommentData(
       {this.id,
@@ -91,9 +91,9 @@ class CommentData {
       });
     }
     if (json['replies'] != null) {
-      replies = <Replies>[];
+      replies = <CommentData>[];
       json['replies'].forEach((v) {
-        replies!.add(new Replies.fromJson(v));
+        replies!.add(new CommentData.fromJson(v));
       });
     }
   }

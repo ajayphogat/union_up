@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:union_up/App/Auth/ViewModel/auth_api.dart';
 import 'package:union_up/Config/shared_prif.dart';
 
+import '../../../Common/snackbar.dart';
 import '../View/login_screen.dart';
 import '../View/register_screen.dart';
 
@@ -33,15 +34,38 @@ class AuthController extends ChangeNotifier {
   TextEditingController mobileNumberController = TextEditingController();
 
 
-  String selectedCountryCode = "91";
-  Country countrys= Country(geographic: true, phoneCode: "91", countryCode: 'IND', e164Sc: 1, level: 1, name: 'India', example: '', displayName: '', displayNameNoCountryCode: '', e164Key: '');
+  String selectedCountryCode = "61";
+  Country countrys= Country(geographic: true, phoneCode: "61", countryCode: 'AUS', e164Sc: 1, level: 1, name: 'Australia', example: '', displayName: '', displayNameNoCountryCode: '', e164Key: '');
 
-  setCountry(phoneCode, countryValue){
-    selectedCountryCode = phoneCode;
+  // Country countrys = Country(phoneCode: '61', flagEmoji: '🇦🇺'); // Default to Australia
+  int mobileNumberLength = 9; // Default length for Australia (not including country code)
 
-    countrys = countryValue;
+  void setCountry(String phoneCode, Country country) {
+    countrys = country;
+
+    switch (phoneCode) {
+      case '61': // Australia
+        mobileNumberLength = 9;
+        break;
+      case '1': // US
+        mobileNumberLength = 10;
+        break;
+      default:
+        mobileNumberLength = 10; // Default length
+    }
+
     notifyListeners();
   }
+
+
+
+
+  // setCountry(phoneCode, countryValue){
+  //   selectedCountryCode = phoneCode;
+  //
+  //   countrys = countryValue;
+  //   notifyListeners();
+  // }
   checkValue(value) {
     isChecked = value;
     notifyListeners();
@@ -78,6 +102,8 @@ bool isLoginLoad= false;
     if(result != null){
 
       print("result====$result");
+
+      snackbar(context, result.message??"Successfully register");
       String? token = result.data?.authToken ?? "";
       await SharedStorage.localStorage?.setString(SharedStorage.token, token ?? "");
       await SharedStorage.localStorage?.setBool(SharedStorage.isLogin, true);
@@ -86,7 +112,8 @@ bool isLoginLoad= false;
       SharedStorage.instance.userDetail(
           username: result.data?.username ??"",
           email: result.data?.userEmail ??"",
-          phone: "");
+          phone: "",
+      image: "");
 
       fNameController.clear();
       lNameController.clear();
@@ -112,7 +139,7 @@ bool isLoginLoad= false;
     if(result != null){
 
       print("result====$result");
-
+      snackbar(context, result.message??"Successfully Login");
       String? token = result.data?.authToken ?? "";
       await SharedStorage.localStorage?.setString(SharedStorage.token, token ?? "");
       await SharedStorage.localStorage?.setBool(SharedStorage.isLogin, true);
@@ -120,7 +147,10 @@ bool isLoginLoad= false;
       SharedStorage.instance.userDetail(
           username: result.data?.username ??"",
           email: result.data?.userEmail ??"",
-          phone: "");
+          phone: "",
+          image: "");
+
+
 
       loginEmailController.clear();
       loginPasswordController.clear();

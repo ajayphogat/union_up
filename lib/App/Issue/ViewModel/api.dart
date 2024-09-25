@@ -48,10 +48,12 @@ class IssueApi {
     BuildContext context,
     int page,
   ) async {
+    var token = SharedStorage.localStorage?.getString(SharedStorage.token);
     try {
       print("start issue list");
 
       var headers = {
+        'Authorization': "Bearer $token",
         'Cookie':
             'wordpress_logged_in_2d7fbb42f5498576f9870e84d2c1cf6a=kk%20test%7C1724666669%7C6dWXRMB2sFx7jKf54H2D5Fg23r277w47unCd5KBB8Sh%7Cbea0a0e236e3eb77bf942020308acd1d30b66ce732354c7aafaf858e04d0b873'
       };
@@ -155,16 +157,107 @@ class IssueApi {
       // print("questionDecode====${jsonDecode("$questionAnswer")}");
 
       if (data.images != null) {
-        for (File imagePath in data.images!) {
-          if (await imagePath.exists()) {
-            print('Adding image: ${imagePath.path}');
+        for (String imagePath in data.images!) {
+          if (await imagePath != "") {
+            print('Adding image: ${imagePath}');
             request.files.add(await http.MultipartFile.fromPath(
-                'issue_images[]', imagePath.path));
+                'issue_images[]', imagePath));
           } else {
             request.files
                 .add(await http.MultipartFile.fromPath('issue_images[]', ""));
 
-            print('Image not found: ${imagePath.path}');
+            print('Image not found: ${imagePath}');
+          }
+        }
+      }
+
+      // Handle video
+      if (data.video != null && await File(data.video!.path).exists()) {
+        print('Adding video: ${data.video!.path}');
+        request.files.add(await http.MultipartFile.fromPath(
+            'issue_videos[]', data.video!.path));
+      } else {
+        print('Video not found: ${data.video?.path}');
+        // request.files.add(await http.MultipartFile.fromPath('issue_videos[]', ""));
+      }
+      request.headers.addAll(headers);
+
+      var response = await client.send(request).timeout(
+          const Duration(seconds: 60)); // Increase timeout if necessary
+
+      if (response.statusCode == 200) {
+        print(await response.stream.bytesToString());
+        return true;
+      } else {
+        print(response.reasonPhrase);
+        return false;
+      }
+    } catch (e) {
+      print('Error: $e');
+      if (e is SocketException) {
+        print('Network error: ${e.osError}');
+      } else if (e is TimeoutException) {
+        print('Timeout error');
+      } else if (e is ClientException) {
+        print('ClientException: ${e.message}');
+      }
+      return false;
+    } finally {
+      client.close();
+    }
+  }
+
+  Future<bool?> updateIssue(BuildContext context, AddIssueModel data,postId) async {
+    var client = http.Client();
+    var token = SharedStorage.localStorage?.getString(SharedStorage.token);
+    var headers = {
+      // 'Connection': 'keep-alive',
+      'Authorization': "Bearer $token",
+      'Cookie':
+          'wordpress_logged_in_2d7fbb42f5498576f9870e84d2c1cf6a=kk%20test%7C1724666669%7C6dWXRMB2sFx7jKf54H2D5Fg23r277w47unCd5KBB8Sh%7Cbea0a0e236e3eb77bf942020308acd1d30b66ce732354c7aafaf858e04d0b873',
+      // 'Content-Type': 'multipart/form-data',
+    };
+
+    var questionAnswer = [
+      {
+        "question": "What needs to be done?",
+        "answer": data.question2 ?? "No Answer"
+      },
+      {"question": "What caused it?", "answer": data.question1 ?? "No Answer"}
+    ];
+
+    print("questionEncode====${jsonEncode(questionAnswer)}");
+    try {
+      final request = http.MultipartRequest('POST', Uri.parse(updateIssueUrl));
+      request.fields.addAll({
+        'issue_location': data.issueLocation ?? "",
+        'questions': jsonEncode(questionAnswer),
+        // 'issue_category': data.category,
+        'issue_description': data.description ?? "",
+        'issue_priority': data.priority ?? "",
+        'issue_title': data.title ?? "",
+        'issue_type': data.category,
+        'issue_status': data.status ?? "",
+        'post_id': postId,
+        'report_issue': data.reportIssue ?? "",
+        'notify': data.notifyList.join(',')
+      });
+
+      print("====${data.notifyList.join(',')}");
+      print("====${data.category}");
+      // print("questionDecode====${jsonDecode("$questionAnswer")}");
+
+      if (data.images != null) {
+        for (String imagePath in data.images!) {
+          if (await imagePath != "") {
+            print('Adding image: ${imagePath}');
+            request.files.add(await http.MultipartFile.fromPath(
+                'issue_images[]', imagePath));
+          } else {
+            request.files
+                .add(await http.MultipartFile.fromPath('issue_images[]', ""));
+
+            print('Image not found: ${imagePath}');
           }
         }
       }
@@ -208,6 +301,7 @@ class IssueApi {
   Future<bool?> addIssueComment(
       BuildContext context, AddIssueCommentModel data) async {
     var token = SharedStorage.localStorage?.getString(SharedStorage.token);
+    print(" length====${data.commentImage?.length}");
     var headers = {
       'Authorization': 'Bearer $token',
       'Cookie':
@@ -221,18 +315,30 @@ class IssueApi {
       'comment_parent': data.commentParentId ?? ""
     });
 
-    if (data.commentImage != "") {
-      request.files.add(await http.MultipartFile.fromPath(
-          'comment_image', data.commentImage ?? ""));
+    if (data.commentImage != null) {
+      for(var i=0; i<data.commentImage!.length; i++) {
+        print("image adding: ${data.commentImage![i]}");
+        request.files.add(await http.MultipartFile.fromPath(
+            'comment_image', data.commentImage![i]));
+      }
     }
-    if (data.commentDocs != "") {
-      request.files.add(await http.MultipartFile.fromPath(
-          'comment_document', data.commentDocs ?? ""));
+
+    if (data.commentDocs != null) {
+      for(var i=0; i<data.commentDocs!.length; i++) {
+        request.files.add(await http.MultipartFile.fromPath(
+            'comment_document[]', data.commentDocs![i]));
+      }
     }
+
+    // if (data.commentDocs != "") {
+    //   request.files.add(await http.MultipartFile.fromPath(
+    //       'comment_document', data.commentDocs ?? ""));
+    // }
     request.headers.addAll(headers);
 
     http.StreamedResponse response = await request.send();
 
+    print("response code of comment add ${response.statusCode}");
     if (response.statusCode == 200) {
       // showSnackBarBottom(context: context,
       //     title: "Success",description: "Comment added successfully");
@@ -335,12 +441,16 @@ class IssueApi {
 
 
   Future<SearchPlaceModel?> searchAutocomplete(String query) async {
+    print(query);
+    Map<String, dynamic> data = {"input": query,
+      "key": ApiKeys.googleAPiKey};
     Uri uri = Uri.https(
         "maps.googleapis.com",
-        "maps/api/place/autocomplete/json",
-        {"input": query, "key": ApiKeys.googleAPiKey});
+        "maps/api/place/autocomplete/json", data);
+    print(uri);
     try {
       final response = await get(uri,);
+      print(response.statusCode);
       final parse = jsonDecode(response.body);
       if (parse['status'] == "OK") {
         SearchPlaceModel searchPlaceModel = SearchPlaceModel.fromJson(parse);

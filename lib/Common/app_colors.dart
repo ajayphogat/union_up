@@ -20,5 +20,7 @@ class AppColors {
   static Color lightGrey =  Color(0xFFEDEEEA);
   static Color lightBlue =  const Color(0xFFE1ECFF);
 
+  static Color commentTileColor =  const Color(0xFFF3F2F2);
+
 
 }

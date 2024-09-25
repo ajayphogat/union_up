@@ -1,5 +1,10 @@
 import 'dart:io';
 
+import 'package:avatar_stack/avatar_stack.dart';
+import 'package:avatar_stack/positions.dart';
+import 'package:comment_tree/widgets/comment_tree_widget.dart';
+import 'package:comment_tree/widgets/tree_theme_data.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,10 +12,16 @@ import 'package:provider/provider.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:union_up/App/Issue/ViewModel/issue_controller.dart';
 import 'package:union_up/Common/image_path.dart';
+import 'package:union_up/Common/snackbar.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../Common/app_colors.dart';
+import '../../../Config/shared_prif.dart';
+import '../../../Widget/app_button.dart';
 import '../../../Widget/app_text_field.dart';
+import '../Model/detail_comment_model.dart';
+import '../Model/report_assign_model.dart';
+import 'issue_screen.dart';
 
 class IssueDetailSceen extends StatelessWidget {
   String id;
@@ -19,10 +30,9 @@ class IssueDetailSceen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
     double width = MediaQuery.sizeOf(context).width;
-    double height =  MediaQuery.sizeOf(context).height;;
+    double height = MediaQuery.sizeOf(context).height;
+    ;
     return Consumer<IssueController>(
       builder: (context, controller, child) => DefaultTabController(
         length: 2,
@@ -61,10 +71,61 @@ class IssueDetailSceen extends StatelessWidget {
             centerTitle: false,
             leadingWidth: 250,
             actions: [
-              Icon(
-                Icons.search,
-                color: AppColors.grey,
-              ),
+              // PopupMenuButton(
+              //   icon: const Icon(Icons.more_vert),
+              //   constraints: BoxConstraints(
+              //     maxWidth: width * .35,
+              //     minWidth: width * .15,
+              //   ),
+              //   itemBuilder: (context) {
+              //     return [
+              //       PopupMenuItem(
+              //         padding: const EdgeInsets.only(left: 10, bottom: 0),
+              //         child: InkWell(
+              //           onTap: () {
+              //             controller.editDetail(
+              //               controller.issueData?.date,
+              //               controller.issueData?.title,
+              //               controller.issueData?.content,
+              //               controller.issueData?.issueStatus == "0"
+              //                   ? "Open"
+              //                   : "Close",
+              //               controller.issueData?.issueCategoryNames?[0],
+              //               controller.issueData?.issuePriority,
+              //               controller.issueData?.reportIssue,
+              //               controller.issueData?.notify?.split(","),
+              //               controller.issueData?.issueLocation,
+              //
+              //               controller.issueData!.questionsAnswers!.isNotEmpty ?  controller.issueData!.questionsAnswers![0].answer :"",
+              //               controller.issueData!.questionsAnswers!.isNotEmpty && controller.issueData!.questionsAnswers!.length > 1 ?  controller.issueData!.questionsAnswers![1].answer :"",
+              //
+              //
+              //             );
+              //
+              //             // Close the popup before showing the bottom sheet
+              //             Navigator.pop(context);
+              //
+              //             // Show the bottom sheet
+              //             modalBottomSheetMenu(context, width, controller);
+              //           },
+              //           child: const Text(
+              //             "Edit",
+              //             style: TextStyle(
+              //               fontSize: 14,
+              //               color: Color(0xFF444444),
+              //               fontWeight: FontWeight.w500,
+              //             ),
+              //           ),
+              //         ),
+              //       ),
+              //     ];
+              //   },
+              // ),
+              GestureDetector(
+                  onTap: () {
+                    popUpBottomsheet(context, width, controller);
+                  },
+                  child: Icon(Icons.more_horiz)),
               const SizedBox(width: 15),
             ],
             bottom: PreferredSize(
@@ -116,79 +177,86 @@ class IssueDetailSceen extends StatelessWidget {
                         ),
                         const Divider(),
                         // Divider at the bottom
-                        if(controller.commentImage.isNotEmpty || controller.commentFiles.isNotEmpty)
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: Container(
-                            height: 50,
-                            child: ListView.separated(
-                              shrinkWrap: true,
-                              scrollDirection: Axis.horizontal,
-                              separatorBuilder: (context, index) => const SizedBox(width: 4,),
-                              itemCount: controller.commentImage.length +
-                                  controller.commentFiles.length,
-                              itemBuilder: (context, index) {
-                                if (index < controller.commentImage.length) {
-                                  final image = controller.commentImage[index];
-                                  return Stack(
-                                    children: [
-                                      Image.file(
-                                        File(image),
-                                        width: 50,
-                                        height: 60,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      Positioned(
-                                        right: -10,
-                                        top: -10,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.cancel,
-                                              color: Colors.grey),
-                                          onPressed: () {
-                                            // setState(() {
-                                            controller.images.removeAt(index);
-                                            // });
-                                          },
+                        if (controller.commentImage.isNotEmpty ||
+                            controller.commentFiles.isNotEmpty)
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: Container(
+                              height: 50,
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(
+                                  width: 4,
+                                ),
+                                itemCount: controller.commentImage.length +
+                                    controller.commentFiles.length,
+                                itemBuilder: (context, index) {
+                                  if (index < controller.commentImage.length) {
+                                    final image =
+                                        controller.commentImage[index];
+                                    return Stack(
+                                      children: [
+                                        Image.file(
+                                          File(image),
+                                          width: 50,
+                                          height: 60,
+                                          fit: BoxFit.cover,
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                } else if (index <
-                                    controller.commentImage.length +
-                                        controller.commentFiles.length) {
-                                  final fileIndex =
-                                      index - controller.commentImage.length;
-                                  final file = controller.commentFiles[fileIndex];
-                                  return Stack(
-                                    children: [
-                                      const Icon(
-                                        Icons.attach_file,
-                                        size: 60,
-                                        color: Colors.grey,
-                                      ),
-                                      Positioned(
-                                        right: -10,
-                                        top: -10,
-                                        child: IconButton(
-                                          icon: const Icon(Icons.cancel,
-                                              color: Colors.grey),
-                                          onPressed: () {
-                                            // setState(() {
-                                            controller.commentFiles
-                                                .removeAt(fileIndex);
-                                            // });
-                                          },
+                                        Positioned(
+                                          right: -10,
+                                          top: -10,
+                                          child: IconButton(
+                                            icon: const Icon(Icons.cancel,
+                                                color: Colors.grey),
+                                            onPressed: () {
+                                              // setState(() {
+                                              controller.images.removeAt(index);
+                                              // });
+                                            },
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  );
-                                }
-                              },
+                                      ],
+                                    );
+                                  } else if (index <
+                                      controller.commentImage.length +
+                                          controller.commentFiles.length) {
+                                    final fileIndex =
+                                        index - controller.commentImage.length;
+                                    final file =
+                                        controller.commentFiles[fileIndex];
+                                    return Stack(
+                                      children: [
+                                        const Icon(
+                                          Icons.attach_file,
+                                          size: 60,
+                                          color: Colors.grey,
+                                        ),
+                                        Positioned(
+                                          right: -10,
+                                          top: -10,
+                                          child: IconButton(
+                                            icon: const Icon(Icons.cancel,
+                                                color: Colors.grey),
+                                            onPressed: () {
+                                              // setState(() {
+                                              controller.commentFiles
+                                                  .removeAt(fileIndex);
+                                              // });
+                                            },
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                },
+                              ),
                             ),
                           ),
-                        ),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0,vertical: 0),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0, vertical: 0),
                           child: AppTextFormWidget(
                             hintText: "Add a comment or update",
                             controller: controller.commentController,
@@ -196,7 +264,6 @@ class IssueDetailSceen extends StatelessWidget {
                             minLine: 2,
                             style: Theme.of(context).textTheme.bodyMedium,
                             focusNode: controller.commentFocusMode,
-
                             hintStyle: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -204,80 +271,80 @@ class IssueDetailSceen extends StatelessWidget {
                           ),
                         ),
 
-                        Row(children: [
-                        GestureDetector(
-                            onTap: () {
-                              controller.pickCommentImage(
-                                  ImageSource.gallery);
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 18.0),
-                              child: Image.asset(
-                                addImageIcon,
-                                width: 20,
-                                height: 20,
-                              ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 15,
                             ),
-                          ),
-                        GestureDetector(
-                            onTap: () {
-                              // var data = AddIssueCommentModel(
-                              //     postId: id,
-                              //     commentDocs: controller.commentImage.isNotEmpty ? controller.commentImage?[0].path :"");
-                              controller.pickFile();
-
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(left: 18.0),
-                              child: Image.asset(
-                                addFileIcon,
-                                width: 20,
-                                height: 20,
-                              ),
-                            ),
-                          ),
-                        Spacer(),
-                        GestureDetector(
-                            onTap: () {
-                              var data = AddIssueCommentModel(
-                                  comment: controller.commentController.text,
-                                  postId: id,
-                                  commentParentId: "",
-                                  commentImage: controller.commentImage.isNotEmpty ? controller.commentImage[0].toString() :"",
-                                  commentDocs:  controller.commentFiles.isNotEmpty ? controller.commentFiles[0].toString() :""
-                              );
-
-                              controller.updateFocusNode();
-                              controller.addDetailComment(
-                                context,
-                                data,
-                                    (value) {
-                                  if (value == true) {
-
-                                  }
+                            GestureDetector(
+                                onTap: () {
+                                  _imageBottomSheetMenu(
+                                      context, width, controller);
                                 },
-                              );
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 18.0),
-                              child: Image.asset(
-                                sendMsgIcon,
-                                width: 30,
-                                height: 30,
+                                child: Image.asset(
+                                  attach,
+                                  width: 20,
+                                  height: 20,
+                                )),
+                            const Spacer(),
+                            GestureDetector(
+                              onTap: controller.commentAdded == false
+                                  ? () {
+                                      if (controller.commentController.text
+                                              .isNotEmpty ||
+                                          controller.commentImage.isNotEmpty ||
+                                          controller.commentFiles.isNotEmpty) {
+                                        var data = AddIssueCommentModel(
+                                            comment: controller
+                                                .commentController.text,
+                                            postId: id,
+                                            commentParentId: "",
+                                            commentImage: controller
+                                                    .commentImage.isNotEmpty
+                                                ? controller.commentImage
+                                                : [],
+                                            commentDocs: controller
+                                                    .commentFiles.isNotEmpty
+                                                ? controller.commentFiles
+                                                : []);
+
+                                        controller.addDetailComment(
+                                          context,
+                                          data,
+                                          (value) {
+                                            if (value == true) {
+                                              controller.updateFocusNode();
+                                            }
+                                          },
+                                        );
+                                      }
+                                    }
+                                  : () {
+                                      snackbar(context, "Please wait...");
+                                    },
+                              child: Padding(
+                                padding: const EdgeInsets.only(right: 18.0),
+                                child: Image.asset(
+                                  sendMsgIcon,
+                                  width: 30,
+                                  height: 30,
+                                ),
                               ),
                             ),
-                          ),
-                        ],),
-                        SizedBox(height: 15,)
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 15,
+                        )
                       ],
                     ),
-                    if(controller.commentAdded)
-                    const Positioned(
-                      top: 0,
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        child: Center(child: CircularProgressIndicator()))
+                    if (controller.commentAdded)
+                      const Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Center(child: CircularProgressIndicator()))
                   ],
                 ),
               ),
@@ -287,46 +354,165 @@ class IssueDetailSceen extends StatelessWidget {
       ),
     );
   }
+  popUpBottomsheet(BuildContext context, width, IssueController controller){
+    showModalBottomSheet(
+        isScrollControlled: true,
+        showDragHandle: true,
+        backgroundColor: AppColors.white,
+        context: context,
+        builder: (builder) {
+          return StatefulBuilder(
+            builder: (context, setState) => ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height *
+                    0.4, // Max height 80% of screen height
+              ),
+              child: SingleChildScrollView(
+                  child: Container(
+                    width: width,
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30.0),
+                            topRight: Radius.circular(30.0))),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Column(
+                        children:[
+                          Align(
+                            alignment: Alignment.center,
+                            child: Text("Issue Option",style: Theme.of(context).textTheme.titleMedium,),
+                          ),
+
+                          ListTile(
+                            onTap: () {
+                              controller.editDetail(
+                                controller.issueData?.date,
+                                controller.issueData?.title,
+                                controller.issueData?.content,
+                                controller.issueData?.issueStatus == "0"
+                                    ? "Open"
+                                    : "Close",
+                                controller.issueData?.issueCategoryNames?[0],
+                                controller.issueData?.issuePriority,
+                                controller.issueData?.reportIssue,
+                                controller.issueData?.notify?.split(","),
+                                controller.issueData?.issueLocation,
+
+                                controller.issueData!.questionsAnswers!.isNotEmpty ?  controller.issueData!.questionsAnswers![0].answer :"",
+                                controller.issueData!.questionsAnswers!.isNotEmpty && controller.issueData!.questionsAnswers!.length > 1 ?  controller.issueData!.questionsAnswers![1].answer :"",
+
+
+                              );
+
+                              // Close the popup before showing the bottom sheet
+                              Navigator.pop(context);
+
+                              // Show the bottom sheet
+                              modalBottomSheetMenu(context, width, controller);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(
+                              viewReportIcon,
+                              width: 20,
+                              height: 20,
+                            ),
+                            title: const Text("Edit Issue"),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              controller.pickCommentImage(ImageSource.camera);
+                              Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(
+                              viewReportIcon,
+                              width: 20,
+                              height: 20,
+                            ),
+                            title: const Text("View Report"),
+                          ),
+
+                          ListTile(
+                            onTap: () {
+                              Navigator.pop(context);
+                              controller.archiveIssue(
+                                  context, controller.issueData!.id.toString(),
+                                      (value) {
+                                    if (value == true) {
+
+                                      snackbar(context,
+                                          "Issue archive added successfully");
+                                    }
+                                  });
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(
+                              archiveIcon,
+                              width: 20,
+                              height: 20,
+                            ),
+                            title: const Text("Archive"),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              controller.pickCommentImage(ImageSource.camera);
+                              Navigator.pop(context);
+                            },
+                            contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                            horizontalTitleGap: 5,
+                            leading: Image.asset(
+                              createTaskIcon,
+                              width: 20,
+                              height: 20,
+                            ),
+                            title: const Text("Create Task"),
+                          ),
+
+                        ],
+                      ),
+                    ),
+                  )),
+            ),
+          );
+        });
+  }
 
   tab1(BuildContext context, IssueController controller, double width) {
     return ListView(
       children: [
         detailPart(context, controller, width),
-
-        if(controller.questionsAnswers.isNotEmpty)
-        Container(
-          height: 10,
-          width: width,
-          color: AppColors.scaffoldColor,
-        ),
-        if(controller.questionsAnswers.isNotEmpty)
-        question(context, controller, width),
-
-
-        if(controller.issueData?.issueLocation !="")
-         Container(
-          height: 10,
-           width: width,
-           color: AppColors.scaffoldColor,
-        ),
-
-        if(controller.issueData?.issueLocation !="")
+        if (controller.questionsAnswers.isNotEmpty)
+          Container(
+            height: 10,
+            width: width,
+            color: AppColors.scaffoldColor,
+          ),
+        if (controller.questionsAnswers.isNotEmpty)
+          question(context, controller, width),
+        if (controller.issueData?.issueLocation != "")
+          Container(
+            height: 10,
+            width: width,
+            color: AppColors.scaffoldColor,
+          ),
+        if (controller.issueData?.issueLocation != "")
           googleMap(context, controller, width),
-
-
-
-
         if (controller.issueDetailImage.isNotEmpty ||
             controller.issueDetailVideo.isNotEmpty)
-        Container(
-          height: 10,
-          width: width,
-          color: AppColors.scaffoldColor,
-        ),
+          Container(
+            height: 10,
+            width: width,
+            color: AppColors.scaffoldColor,
+          ),
         if (controller.issueDetailImage.isNotEmpty ||
             controller.issueDetailVideo.isNotEmpty)
           attachment(context, controller, width),
-
         Container(
           height: 10,
           width: width,
@@ -375,7 +561,7 @@ class IssueDetailSceen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 15.0),
+                          padding: const EdgeInsets.symmetric(horizontal: 15.0),
                           child: Center(
                             child: Text(
                               data["title"],
@@ -383,12 +569,12 @@ class IssueDetailSceen extends StatelessWidget {
                                   .textTheme
                                   .bodyMedium
                                   ?.copyWith(
-                                color: controller.selectedActivityIndex ==
-                                    index
-                                    ? AppColors
-                                    .primary // Change to primary color if selected
-                                    : AppColors.grey,
-                              ),
+                                    color: controller.selectedActivityIndex ==
+                                            index
+                                        ? AppColors
+                                            .primary // Change to primary color if selected
+                                        : AppColors.grey,
+                                  ),
                             ),
                           ),
                         ),
@@ -403,175 +589,231 @@ class IssueDetailSceen extends StatelessWidget {
             ),
             Expanded(
               child: Visibility(
-                visible: controller.selectedActivityIndex == 0
-                    ? controller.all.isNotEmpty
-                    : controller.selectedActivityIndex == 1
-                    ? controller.commentData.isNotEmpty
-                    : controller.historyComment.isNotEmpty,
-                replacement: Container(
-                  height: width,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      Text("Comment not found",style: Theme.of(context).textTheme.titleLarge,),
-                    ],
-                  ),
-                ),
-
-                child: ListView.builder(
-                  itemCount: controller.selectedActivityIndex == 0
-                      ? controller.all.length
+                  visible: controller.selectedActivityIndex == 0
+                      ? controller.all.isNotEmpty
                       : controller.selectedActivityIndex == 1
-                      ? controller.commentData.length
-                      : controller.historyComment.length,
-                  // itemCount: 4,
-                  physics: AlwaysScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    var comment = controller.selectedActivityIndex == 0
-                        ? controller.all[index]
+                          ? controller.commentData.isNotEmpty
+                          : controller.historyComment.isNotEmpty,
+                  replacement: Container(
+                    height: width,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        Text(
+                          "Comment not found",
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ],
+                    ),
+                  ),
+                  child: ListView.builder(
+                    itemCount: controller.selectedActivityIndex == 0
+                        ? controller.all.length
                         : controller.selectedActivityIndex == 1
-                        ? controller.commentData[index]
-                        : controller.historyComment[index];
-                    return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 15.0,
-                          ),
-                          child: Container(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                        flex: 1,
-                                        child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(50),
-                                            child: Image.network(
-                                              comment.userImage != ""
-                                                  ? comment.userImage ?? ""
-                                                  : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8f5l8yq2MvvdIp9t88gx92Gtv_3i4tLxFcQ&s",
-                                              fit: BoxFit.cover,
-                                              width: 35,
-                                              height: 35,
-                                            ))),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                      flex: 8,
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            comment.commentAuthor ?? "",
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                color: AppColors.black,
-                                                fontWeight: FontWeight.bold),
+                            ? controller.commentData.length
+                            : controller.historyComment.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      var comment = controller.selectedActivityIndex == 0
+                          ? controller.all[index]
+                          : controller.selectedActivityIndex == 1
+                              ? controller.commentData[index]
+                              : controller.historyComment[index];
+
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(10)),
+                          padding: const EdgeInsets.all(8),
+                          child: Column(
+                            children: [
+                              CommentTreeWidget<CommentData, CommentData>(
+                                comment,
+                                comment.replies ?? [], // Limit replies shown
+                                treeThemeData: const TreeThemeData(
+                                  lineColor: Colors.grey,
+                                  lineWidth: 2,
+                                ),
+                                avatarRoot: (context, data) => PreferredSize(
+                                  preferredSize: const Size.fromRadius(18),
+                                  child: CircleAvatar(
+                                    backgroundImage:
+                                        NetworkImage(data.userImage ?? ''),
+                                    radius: 18,
+                                  ),
+                                ),
+                                avatarChild: (context, data) => PreferredSize(
+                                  preferredSize: const Size.fromRadius(12),
+                                  child: CircleAvatar(
+                                    backgroundImage:
+                                        NetworkImage(data.userImage ?? ''),
+                                    radius: 12,
+                                  ),
+                                ),
+                                contentRoot: (context, data) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        data.commentAuthor ?? '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        data.commentContent ?? '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      if (data.commentMeta != null)
+                                        if (data.commentMeta!.isNotEmpty)
+                                          Container(
+                                            height: 50,
+                                            child: ListView.builder(
+                                              shrinkWrap: true,
+                                              scrollDirection: Axis.horizontal,
+                                              itemCount:
+                                                  data.commentMeta?.length,
+                                              itemBuilder: (context, index) =>
+                                                  Image.network(data
+                                                          .commentMeta?[index]
+                                                          .metaValue ??
+                                                      ""),
+                                            ),
                                           ),
-                                          Text(comment.commentDate ?? "",
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelLarge
-                                                  ?.copyWith(color: AppColors.black)),
+                                      Row(
+                                        children: [
+                                          const Text(
+                                            'Like',
+                                            style:
+                                                TextStyle(color: Colors.grey),
+                                          ),
+                                          const SizedBox(width: 15),
+                                          GestureDetector(
+                                            onTap: () {
+                                              // Set the active reply index to this comment's index
+                                              controller.activeReplyIndex =
+                                                  index;
+                                              controller
+                                                  .updateFocusNode(); // Optional: To focus on the reply box
+                                            },
+                                            child: const Text(
+                                              'Reply',
+                                              style:
+                                                  TextStyle(color: Colors.grey),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 15),
+                                          Text(
+                                            // controller.convertDate(data.commentDate ?? ""),
+                                            data.commentDate ?? "",
+                                            style: const TextStyle(
+                                                color: Colors.grey),
+                                          ),
                                         ],
                                       ),
-                                    ),
-                                    // Expanded(
-                                    //     flex: 1,
-                                    //     child: GestureDetector(
-                                    //         onTap: () {
-                                    //
-                                    //         },
-                                    //         child: Icon(Icons.thumb_up_alt_outlined, )))
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: 5,
-                                ),
-                                Text(
-                                  comment.commentContent ?? "",
-                                  style: Theme.of(context)
+                                    ],
+                                  );
+                                },
+                                contentChild: (context, data) {
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        data.commentAuthor ?? '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelLarge
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.black,
+                                            ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        data.commentContent ?? '',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              // show only for index where i want reply
+                              if (controller.activeReplyIndex == index)
+                                AppTextFormWidget(
+                                  // height: 40,
+                                  hintText: "Enter your message",
+                                  controller: controller.replyCommentController,
+                                  fillColor: AppColors.lightGrey,
+                                  style: Theme.of(context).textTheme.bodyMedium,
+                                  hintStyle: Theme.of(context)
                                       .textTheme
-                                      .labelMedium
+                                      .bodyMedium
                                       ?.copyWith(color: AppColors.grey),
-                                ),
+                                  sufixIcon: GestureDetector(
+                                    onTap: () {
+                                      var data = AddIssueCommentModel(
+                                          comment: controller
+                                              .replyCommentController.text,
+                                          postId: id,
+                                          commentParentId: comment.id,
+                                          commentImage: [],
+                                          commentDocs: []);
 
-                                SizedBox(height: 5,),
-                                if(comment.commentMeta !=null)
-                                if(comment.commentMeta!.isNotEmpty)
-                                Container(
-                                  height: 80,
-                                  child: ListView.builder(
-                                    scrollDirection: Axis.horizontal,
-                                    itemCount: comment.commentMeta?.length,
-                                    itemBuilder: (context, i) {
-                                      var meta = comment.commentMeta?[i];
-                                      return Padding(padding: EdgeInsets.only(right: 8),
-
-                                        child: meta?.metaValue?.split(".").last !="pdf" ?
-                                      GestureDetector(
-                                          onTap: () {
-                                            showDialog(
-                                              context: context,
-                                              builder: (BuildContext context) {
-                                                return AlertDialog(
-                                                  title: Text("Image View", style: Theme.of(context).textTheme.titleLarge,),
-                                                  content: Image.network(meta?.metaValue??"",width: 300,height: 350,fit: BoxFit.fill,),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () => Navigator.of(context).pop(false),
-                                                      child: Text("OK", style: Theme.of(context).textTheme.labelLarge?.copyWith(color: AppColors.black),),
-                                                    ),
-
-                                                  ],
-                                                );
-                                              },
-                                            );
-                                          },
-                                          child: Container(
-                                            decoration: BoxDecoration(border: Border.all(color: AppColors.grey),borderRadius: BorderRadius.circular(5)),
-                                            child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(5),
-                                                child: Image.network(meta?.metaValue ??"",width: 100,height: 100,fit: BoxFit.fill,)),
-                                          )):
-                                      GestureDetector(
-                                        onTap: () {
-
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) => PdfViewerPage(pdfUrl: meta?.metaValue ??""),));
+                                      controller.updateFocusNode();
+                                      controller.addDetailComment(
+                                        context,
+                                        data,
+                                        (value) {
+                                          if (value == true) {
+                                            controller.replyCommentController
+                                                .clear();
+                                            controller.activeReplyIndex = null;
+                                          }
                                         },
-                                        child: Container(
-                                          decoration: BoxDecoration(border: Border.all(color: AppColors.grey),borderRadius: BorderRadius.circular(5)),
-
-                                          child: const Icon(
-                                            Icons.attach_file,
-                                            size: 60,
-                                            color: Colors.grey,
-                                          ),
-                                        ),
-                                      )  ,
                                       );
-
-                                    },),
+                                    },
+                                    child: Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 24.0),
+                                      child: Image.asset(
+                                        sendMsgIcon,
+                                        width: 20,
+                                        height: 20,
+                                      ),
+                                    ),
+                                  ),
                                 )
-                              ],
-                            ),
+                            ],
                           ),
-                        );
-                  },
-                ),
-              ),
+                        ),
+                      );
+                    },
+                  )),
             )
           ],
         ),
       ),
     );
   }
-
 
   detailPart(BuildContext context, IssueController controller, double width) {
     // print("location==== ${controller.issueData?.issueLocation ??""}");
@@ -649,39 +891,32 @@ class IssueDetailSceen extends StatelessWidget {
                   .titleSmall
                   ?.copyWith(color: AppColors.grey, fontSize: 16),
             ),
-            SizedBox(height: 15,),
+            const SizedBox(
+              height: 15,
+            ),
             Row(
               children: [
                 Container(
+                  height: 45,
                   width: 150,
-                  height: 50,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      color: controller.issueData?.issueStatus == "1"
-                          ? AppColors.lightGreen
-                          : AppColors.lightRed),
-                  child: Container(
-                    height: 45,
-                    width: 150,
-                    decoration: BoxDecoration(
-                      color: controller.issueData?.issueStatus == "1"
-                          ? AppColors.lightGreen
-                          : AppColors.lightRed,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Center(
-                      child: Text(
-                        controller.issueData?.issueStatus == "0"
-                            ? "Open"
-                            : "Close",
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(
-                                color: controller.issueData?.issueStatus == "1"
-                                    ? AppColors.green
-                                    : AppColors.red),
-                      ),
+                    color: controller.issueData?.issueStatus == "1" ||controller.issueData?.issueStatus == "Close"
+                        ? AppColors.lightGreen
+                        : AppColors.lightRed,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      controller.issueData?.issueStatus == "1" ||controller.issueData?.issueStatus == "Close"
+                          ? "Close"
+                          : "Open",
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(
+                              color: controller.issueData?.issueStatus == "1" || controller.issueData?.issueStatus == "Close"
+                                  ? AppColors.green
+                                  : AppColors.red),
                     ),
                   ),
                 )
@@ -721,12 +956,18 @@ class IssueDetailSceen extends StatelessWidget {
                           if (controller.issueData != null)
                             if (controller.issueData!.issueCategoryNames !=
                                 null)
-                              if (controller.issueData!.issueCategoryNames!.isNotEmpty)
+                              if (controller
+                                  .issueData!.issueCategoryNames!.isNotEmpty)
                                 Expanded(
                                   flex: 8,
                                   child: Text(
-                                    controller.issueData?.issueCategoryNames?[0] != null ?  controller.issueData?.issueCategoryNames?.first??
-                                        "":"",
+                                    controller.issueData
+                                                ?.issueCategoryNames?[0] !=
+                                            null
+                                        ? controller.issueData
+                                                ?.issueCategoryNames?.first ??
+                                            ""
+                                        : "",
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: Theme.of(context)
@@ -759,6 +1000,7 @@ class IssueDetailSceen extends StatelessWidget {
                       flex: 7,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Expanded(
                               flex: 1,
@@ -775,8 +1017,11 @@ class IssueDetailSceen extends StatelessWidget {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                controller.issueData?.issuePriority != "" ?
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
                                   children: <Widget>[
                                     Image.asset(
                                       controller.issueData?.issuePriority ==
@@ -811,7 +1056,7 @@ class IssueDetailSceen extends StatelessWidget {
                                                       : AppColors.primary),
                                     ),
                                   ],
-                                ),
+                                ) :Text(""),
                                 Divider(
                                   color: AppColors.grey,
                                 )
@@ -831,7 +1076,9 @@ class IssueDetailSceen extends StatelessWidget {
                   Expanded(
                     flex: 3,
                     child: Text(
-                      "Report to delegate",
+                      SharedStorage.instance.role == "worker"
+                          ? "Report to delegate"
+                          : "Report Issue to",
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -842,6 +1089,7 @@ class IssueDetailSceen extends StatelessWidget {
                       flex: 7,
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Expanded(
                               flex: 1,
@@ -855,8 +1103,8 @@ class IssueDetailSceen extends StatelessWidget {
                           ),
                           if (controller.issueData != null)
                             if (controller.issueData?.reportIssueUser != null)
-                              if (controller
-                                  .issueData!.reportIssueUser!.isNotEmpty)
+                              controller
+                                  .issueData!.reportIssueUser!.isNotEmpty?
                                 Expanded(
                                   flex: 7,
                                   child: Column(
@@ -879,7 +1127,22 @@ class IssueDetailSceen extends StatelessWidget {
                                       )
                                     ],
                                   ),
-                                ),
+                                ) :Expanded(
+                                  flex: 7,
+                                  child: Column(
+                                    children: [
+                                      Text(
+                                            "",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.grey),
+                                      ),
+                                      Divider(
+                                        color: AppColors.grey,
+                                      )
+                                    ],
+                                  )),
                         ],
                       )),
                 ],
@@ -893,7 +1156,9 @@ class IssueDetailSceen extends StatelessWidget {
                   Expanded(
                     flex: 3,
                     child: Text(
-                      "Notify Safety Rep",
+                      SharedStorage.instance.role == "worker"
+                          ? "Notify Safety Rep"
+                          : "Notify Others",
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium
@@ -922,18 +1187,26 @@ class IssueDetailSceen extends StatelessWidget {
                                   _showMultiSelectGroup(context, controller);
                                 },
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      "Notify User",
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium
-                                          ?.copyWith(color: AppColors.grey),
+                                    AvatarStack(
+                                      height: 25.isFinite ? 25 : 0,
+                                      width: 160,
+                                      settings: settings,
+                                      avatars: [
+                                        for (var n = 0;
+                                            n <
+                                                controller
+                                                    .issueData!.notifyUser!.length;
+                                            n++)
+                                          NetworkImage(controller
+                                                  .issueData!.notifyUser![n] ??
+                                              ""),
+                                      ],
+                                      infoWidgetBuilder: (surplus) =>
+                                          _infoWidget(surplus, context),
                                     ),
-                                    const Icon(
-                                        Icons.keyboard_arrow_down_outlined)
+                                    Icon(Icons.keyboard_arrow_down)
                                   ],
                                 ),
                               ),
@@ -975,110 +1248,6 @@ class IssueDetailSceen extends StatelessWidget {
     );
   }
 
-  // question1(BuildContext context, IssueController controller, double width) {
-  //   controller.initialize();  // Ensure controllers and icon states are initialized
-  //
-  //   return Container(
-  //     width: width,
-  //     color: AppColors.white,
-  //     child: Padding(
-  //       padding: const EdgeInsets.symmetric(horizontal: 12.0),
-  //       child: Column(
-  //         crossAxisAlignment: CrossAxisAlignment.start,
-  //         children: [
-  //           SizedBox(height: 10),
-  //           Row(
-  //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //             children: [
-  //               Text(
-  //                 "Question",
-  //                 style: Theme.of(context).textTheme.titleLarge?.copyWith(color: AppColors.grey),
-  //               ),
-  //               Icon(Icons.edit, color: AppColors.grey),
-  //             ],
-  //           ),
-  //           SizedBox(height: 15),
-  //           ListView.builder(
-  //             itemCount: controller.questionsAnswers.length,
-  //             shrinkWrap: true,
-  //             itemBuilder: (context, index) {
-  //               var data = controller.questionsAnswers[index];
-  //               TextEditingController answerController = controller.getController(index);
-  //
-  //               return Column(
-  //                 children: [
-  //                   Row(
-  //                     children: [
-  //                       Text(
-  //                         "Q",
-  //                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-  //                       ),
-  //                       const SizedBox(width: 10),
-  //                       Expanded(
-  //                         child: Text(
-  //                           data.question ?? "",
-  //                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-  //                         ),
-  //                       ),
-  //                     ],
-  //                   ),
-  //                   Row(
-  //                     children: [
-  //                       const Text("A"),
-  //                       const SizedBox(width: 10),
-  //                       AppTextFormWidget(
-  //                         width: width * 0.8,
-  //                         hintText: "answer",
-  //                         controller: answerController,
-  //                         // focusNode:controller.shouldShowSuffixIcon(index) ? controller.answerFocusNode : ,
-  //                         hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.normal),
-  //                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.normal),
-  //                         sufixIcon: controller.shouldShowSuffixIcon(index)
-  //                             ? Padding(
-  //                           padding: const EdgeInsets.all(8.0),
-  //                           child: GestureDetector(
-  //                             onTap: () {
-  //                               var data = AddIssueCommentModel(
-  //                                   comment: answerController.text,
-  //                                   postId: id ,
-  //                                   commentParentId: controller.issueData!.issueCreatedUserId.toString(),
-  //                                   commentImage: "",
-  //                                   commentDocs: "");
-  //
-  //                               controller.updateAnswer(index);  // Update answer and hide suffix icon
-  //                               // controller.addIssueComment(context, data, (value) {
-  //                               //
-  //                               //   if(value==true){
-  //                               //
-  //                               //   }
-  //                               //
-  //                               // },);  // Update answer and hide suffix icon
-  //                             },
-  //                             child: Image.asset(sendMsgIcon, width: 10, height: 10),
-  //                           ),
-  //                         )
-  //                             : null,
-  //                         // onFocusChanged: (hasFocus) {
-  //                         //   if (hasFocus) {
-  //                         //     // Focus gained, show suffix icon
-  //                         //     controller.updateFocusIndex(index);
-  //                         //   } else {
-  //                         //     // Focus lost, handle accordingly if needed
-  //                         //     controller.clearFocus();
-  //                         //   }
-  //                         // },
-  //                       ),
-  //                     ],
-  //                   ),
-  //                 ],
-  //               );
-  //             },
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
   question(BuildContext context, IssueController controller, double width) {
     // Ensure controllers and icon states are initialized
 
@@ -1090,7 +1259,7 @@ class IssueDetailSceen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1104,11 +1273,11 @@ class IssueDetailSceen extends StatelessWidget {
                 // Icon(Icons.edit, color: AppColors.grey),
               ],
             ),
-            SizedBox(height: 15),
+            const SizedBox(height: 15),
             ListView.builder(
               itemCount: controller.questionsAnswers.length,
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemBuilder: (context, index) {
                 var data = controller.questionsAnswers[index];
 
@@ -1117,7 +1286,7 @@ class IssueDetailSceen extends StatelessWidget {
                     Row(
                       children: [
                         Text(
-                          "Q",
+                          "Q.",
                           style: Theme.of(context)
                               .textTheme
                               .bodyMedium
@@ -1137,11 +1306,13 @@ class IssueDetailSceen extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        const Text("A"),
+                        const Text("A."),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            data.answer ?? "",
+                            data.answer != ""
+                                ? data.answer ?? ""
+                                : "Un Answered",
                             style: Theme.of(context)
                                 .textTheme
                                 .bodySmall
@@ -1154,7 +1325,9 @@ class IssueDetailSceen extends StatelessWidget {
                 );
               },
             ),
-            SizedBox(height: 20,)
+            const SizedBox(
+              height: 20,
+            )
           ],
         ),
       ),
@@ -1184,15 +1357,16 @@ class IssueDetailSceen extends StatelessWidget {
               ],
             ),
             Text(
-              controller.issueData?.issueLocation??"",
+              controller.issueData?.issueLocation ?? "",
               style: Theme.of(context)
                   .textTheme
                   .bodyLarge
                   ?.copyWith(color: AppColors.grey),
             ),
             Container(
-              decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
-              color: AppColors.white),
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.white),
               height: MediaQuery.sizeOf(context).height * .22,
               width: MediaQuery.sizeOf(context).width,
               child: Padding(
@@ -1213,9 +1387,8 @@ class IssueDetailSceen extends StatelessWidget {
                     mapType: MapType.normal,
                     initialCameraPosition: CameraPosition(
                       target: LatLng(
-                        controller.location?.latitude ??0.0,
+                        controller.location?.latitude ?? 0.0,
                         controller.location?.longitude ?? 0.0,
-
                       ),
                       zoom: 14.5,
                     ),
@@ -1270,15 +1443,19 @@ class IssueDetailSceen extends StatelessWidget {
                           itemBuilder: (context, index) {
                             var data = controller.issueDetailImage[index];
                             return Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.only(right: 8.0),
                               child: Container(
-                                decoration: BoxDecoration(border: Border.all(color: AppColors.grey,),borderRadius: BorderRadius.circular(5)),
+                                decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: AppColors.grey,
+                                    ),
+                                    borderRadius: BorderRadius.circular(5)),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(5),
                                   child: Image.network(
                                     data,
-                                    width: 100,
-                                    height: 150,
+                                    width: 110,
+                                    height: 100,
                                     fit: BoxFit.fill,
                                   ),
                                 ),
@@ -1295,46 +1472,65 @@ class IssueDetailSceen extends StatelessWidget {
                           scrollDirection: Axis.horizontal,
                           itemCount: controller.issueDetailVideo.length,
                           itemBuilder: (context, index) {
-                            var data = controller.issueDetailVideo[index];
+                            var videoUrl = controller.issueDetailVideo;
+                            controller.initializeControllers(videoUrl);
                             return Stack(
                               children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child:  Center(
-                                    child: FutureBuilder(
-                                      future: controller.initializeVideoPlayerFuture,
-                                      builder: (context, snapshot) {
-                                        if (snapshot.connectionState == ConnectionState.done) {
-                                          return AspectRatio(
-                                            aspectRatio: controller.viController.value.aspectRatio,
-                                            child: VideoPlayer(controller.viController),
-                                          );
-                                        } else {
-                                          return CircularProgressIndicator();
-                                        }
-                                      },
+                                Container(
+                                  width: 120,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 8.0),
+                                    child: Center(
+                                      child: FutureBuilder(
+                                        future: controller
+                                            .initializeVideoFutures[index],
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.done) {
+                                            return ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              child: AspectRatio(
+                                                aspectRatio: 1.4,
+                                                child: VideoPlayer(controller
+                                                    .videoControllers[index]),
+                                              ),
+                                            );
+                                          } else {
+                                            return const CircularProgressIndicator();
+                                          }
+                                        },
+                                      ),
                                     ),
                                   ),
                                 ),
                                 Positioned(
-                                  top: 0,left: 0,right: 0,bottom: 0,
-                                    child: GestureDetector(
-                                  onTap: () {
-                                    if (controller.viController.value.isPlaying) {
-                                      controller.pause();
-                                    } else {
-                                      controller.play();
-                                    }
-                                  },
-                                  child: Icon(
-                                    controller.viController.value.isPlaying ? Icons.pause : Icons.play_arrow,
+                                  top: 0,
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      if (controller.videoControllers[index]
+                                          .value.isPlaying) {
+                                        controller.pause(index);
+                                      } else {
+                                        controller.play(index);
+                                      }
+                                    },
+                                    child: Icon(
+                                      controller.videoControllers[index].value
+                                              .isPlaying
+                                          ? Icons.pause
+                                          : Icons.play_arrow,
+                                    ),
                                   ),
-                                ))
+                                ),
                               ],
                             );
                           },
                         ),
-                      ),
+                      )
                   ],
                 ),
               ),
@@ -1345,7 +1541,113 @@ class IssueDetailSceen extends StatelessWidget {
     );
   }
 
-
+  void _imageBottomSheetMenu(
+      BuildContext context, width, IssueController controller) {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        showDragHandle: true,
+        context: context,
+        builder: (builder) {
+          return StatefulBuilder(
+            builder: (context, setState) => ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height *
+                    0.4, // Max height 80% of screen height
+              ),
+              child: SingleChildScrollView(
+                  child: Container(
+                width: width,
+                decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(30.0),
+                        topRight: Radius.circular(30.0))),
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      Container(
+                        height: 6,
+                        width: 60,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      Text("Attachment",
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 10),
+                      ListTile(
+                        onTap: () {
+                          controller.pickCommentImage(ImageSource.camera);
+                          Navigator.pop(context);
+                        },
+                        contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                        horizontalTitleGap: 5,
+                        leading: Image.asset(
+                          cameraIcon,
+                          width: 20,
+                          height: 20,
+                        ),
+                        title: const Text("Take photo"),
+                      ),
+                      ListTile(
+                        onTap: () {
+                          controller.pickCommentImage(ImageSource.gallery);
+                          Navigator.pop(context);
+                        },
+                        contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                        horizontalTitleGap: 5,
+                        leading: Image.asset(
+                          albumIcon,
+                          width: 20,
+                          height: 20,
+                        ),
+                        title: const Text("Select Image"),
+                      ),
+                      ListTile(
+                        onTap: () {
+                          controller.pickFile();
+                          Navigator.pop(context);
+                        },
+                        contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                        horizontalTitleGap: 5,
+                        leading: Image.asset(
+                          fileIcon,
+                          width: 20,
+                          height: 20,
+                        ),
+                        title: const Text("Upload File"),
+                      ),
+                      // ListTile(
+                      //   onTap: () {
+                      //     // controller.pickVideo();
+                      //     Navigator.pop(context);
+                      //   },
+                      //   contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                      //
+                      //   horizontalTitleGap: 5,
+                      //   leading: Image.asset(videoCamera,width: 20,height: 20,),
+                      //   title: const Text("add video"),),
+                    ],
+                  ),
+                ),
+              )),
+            ),
+          );
+        });
+  }
 }
 
 void _showMultiSelectGroup(
@@ -1405,27 +1707,1470 @@ class AddIssueCommentModel {
   String? comment;
   String postId;
   String? commentParentId;
-  String? commentImage;
-  String? commentDocs;
+  List<String>? commentImage;
+  List<String>? commentDocs;
 
   AddIssueCommentModel(
-      { this.comment,
+      {this.comment,
       required this.postId,
-       this.commentParentId,
-       this.commentImage,
-       this.commentDocs});
+      this.commentParentId,
+      this.commentImage,
+      this.commentDocs});
 }
 
 class PdfViewerPage extends StatelessWidget {
-  final String pdfUrl ;
+  final String pdfUrl;
+
   PdfViewerPage({super.key, required this.pdfUrl});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('PDF Viewer'),
+        title: const Text('PDF Viewer'),
       ),
       body: SfPdfViewer.network(pdfUrl),
     );
   }
 }
+
+void modalBottomSheetMenu(
+    BuildContext context, width, IssueController controller) {
+  showModalBottomSheet(
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: AppColors.white,
+      context: context,
+      builder: (builder) {
+        return Consumer<IssueController>(
+          builder: (context, read, child) => StatefulBuilder(
+            builder: (context, setState) => ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height *
+                    0.8, // Max height 80% of screen height
+              ),
+              child: SingleChildScrollView(
+                child: Container(
+                    width: width,
+                    decoration: const BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(30.0),
+                            topRight: Radius.circular(30.0))),
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+
+                            Text("Edit Issue",
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleLarge
+                                    ?.copyWith(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 10),
+
+                            // Date picker row
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                const Expanded(
+                                  flex: 1,
+                                  child: Icon(
+                                    Icons.calendar_month,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  flex: 9,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Date",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: Colors.grey),
+                                      ),
+                                      GestureDetector(
+                                        onTap: () {
+                                          read.selectDate(context,1);
+                                        },
+                                        child: Container(
+                                          width: double.infinity,
+                                          // Ensure the container takes the full width of its parent
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 10.0),
+                                          // Optional: Add padding to increase touch area
+
+                                          child: Text(
+                                            read.editDateToController.text
+                                                    .isNotEmpty
+                                                ? read.editDateToController.text
+                                                : "Enter date                                          ",
+                                            maxLines: 2,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                                    color: Colors.grey),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(
+                              height: 5,
+                            ),
+                            Divider(
+                              color: AppColors.grey,
+                              indent: 30,
+                            ),
+
+                            const SizedBox(height: 10),
+
+                            // Title and description text fields
+                            AppTextFormWidget(
+                              hintText: "Tap to add title...",
+                              controller: read.edittitleController,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(color: Colors.black),
+                              hintStyle: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              validator: (value) {
+                                if (value!.isEmpty && value == "") {
+                                  return "Please enter title";
+                                }
+                              },
+                            ),
+                            AppTextFormWidget(
+                              hintText: "Tap to add a description...",
+                              controller: read.editdescriptionController,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    fontSize: 14,
+                                  ),
+                              hintStyle: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                              ),
+                              validator: (value) {
+                                if (value!.isEmpty && value == "") {
+                                  return "Please enter description";
+                                }
+                              },
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Open/Closed dropdown
+                            Row(
+                              children: [
+                                ConstrainedBox(
+                                  constraints:
+                                      const BoxConstraints(maxHeight: 500),
+                                  child: Container(
+                                    width: 130,
+                                    height: 50,
+                                    decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(10),
+                                        color:
+                                            controller.selectedIssueStatus ==
+                                                    "Open"
+                                                ? AppColors.lightRed
+                                                : AppColors.lightGreen),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton2<String>(
+                                        value: controller.selectedIssueStatus,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: Colors.grey),
+                                        iconStyleData: IconStyleData(
+                                          icon: const Icon(Icons
+                                              .keyboard_arrow_down_outlined),
+                                          iconSize: 30,
+                                          iconEnabledColor: AppColors.black,
+                                        ),
+                                        isExpanded: true,
+                                        hint: Text(
+                                          "Category",
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(color: Colors.grey),
+                                        ),
+                                        items: [
+                                          ...controller.status
+                                              .map((e) => DropdownMenuItem(
+                                                    value:
+                                                        e['name'].toString(),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets
+                                                              .all(8.0),
+                                                      child: Center(
+                                                        child: Container(
+                                                          height: MediaQuery
+                                                                  .sizeOf(
+                                                                      context)
+                                                              .width,
+                                                          width: MediaQuery
+                                                                  .sizeOf(
+                                                                      context)
+                                                              .width,
+                                                          decoration: BoxDecoration(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          10)),
+                                                          child: Text(
+                                                            e['name'] ?? "",
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .titleMedium
+                                                                ?.copyWith(
+                                                                  color: e[
+                                                                      'txt_clr'],
+                                                                ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    onTap: () {},
+                                                  ))
+                                              .toList(),
+                                        ],
+                                        onChanged: (String? newValue) {
+                                          controller
+                                              .updateIssueStatus(newValue);
+                                        },
+                                        menuItemStyleData:
+                                            const MenuItemStyleData(
+                                                height: 35),
+                                        buttonStyleData: ButtonStyleData(
+                                          height: 30,
+                                          width: width * .4,
+                                          padding: const EdgeInsets.only(
+                                              left: 0, right: 14),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            color: controller
+                                                        .selectedIssueStatus ==
+                                                    "Open"
+                                                ? AppColors.lightRed
+                                                : AppColors.lightGreen,
+                                          ),
+                                          elevation: 0,
+                                        ),
+                                        dropdownStyleData: DropdownStyleData(
+                                          maxHeight:
+                                              MediaQuery.sizeOf(context)
+                                                      .height *
+                                                  .8,
+                                          width: MediaQuery.sizeOf(context)
+                                                  .width *
+                                              .35,
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(14),
+                                            color: Colors.white,
+                                          ),
+                                          offset: const Offset(-10, 0),
+                                          scrollbarTheme: ScrollbarThemeData(
+                                            radius: const Radius.circular(40),
+                                            thickness:
+                                                WidgetStateProperty.all(6),
+                                            thumbVisibility:
+                                                WidgetStateProperty.all(true),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      "Category",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppColors.grey),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      flex: 7,
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                              flex: 1,
+                                              child: Image.asset(
+                                                listIconImage,
+                                                width: 30,
+                                                height: 40,
+                                              )),
+                                          // Icon(Icons.list, color: Colors.grey),
+                                          const SizedBox(
+                                            width: 5,
+                                          ),
+                                          Expanded(
+                                            flex: 8,
+                                            child: Text(
+                                              read.selectedCategory.toString(),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                      color: AppColors.grey),
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ],
+                              ),
+                            ),
+
+                            ///Priority
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      "Priority",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppColors.grey),
+                                    ),
+                                  ),
+                                  Expanded(
+                                      flex: 7,
+                                      child: Row(
+                                        children: [
+                                          Image.asset(
+                                            priorityIconImage,
+                                            width: 25,
+                                            height: 25,
+                                          ),
+                                          const SizedBox(
+                                            width: 5,
+                                          ),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                DropdownButtonFormField(
+                                                  items: [
+                                                    DropdownMenuItem<String>(
+                                                      value: null,
+                                                      // Default "Choose" option with null value
+                                                      child: Text(
+                                                        "Choose",
+                                                        style: Theme.of(
+                                                                context)
+                                                            .textTheme
+                                                            .bodyMedium
+                                                            ?.copyWith(
+                                                                color:
+                                                                    AppColors
+                                                                        .grey),
+                                                      ),
+                                                    ),
+                                                    ...controller.priorityList
+                                                        .map((category) {
+                                                      return DropdownMenuItem<
+                                                          String>(
+                                                        value:
+                                                            category["name"]
+                                                                .toString(),
+                                                        // Ensure this is a String too
+                                                        child: Row(
+                                                          children: <Widget>[
+                                                            Image.asset(
+                                                              category['img'],
+                                                              height: 15,
+                                                              width: 15,
+                                                              fit: BoxFit
+                                                                  .fitWidth,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 5,
+                                                            ),
+                                                            Text(
+                                                              category[
+                                                                  "name"],
+                                                              style: Theme.of(
+                                                                      context)
+                                                                  .textTheme
+                                                                  .bodyMedium
+                                                                  ?.copyWith(
+                                                                      color: category[
+                                                                          'color']),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }).toList(),
+                                                  ],
+                                                  onChanged: (newValue) {
+                                                    print("newValue===$newValue");
+                                                    controller.setPriorityDetail(
+                                                        newValue);
+
+                                                  },
+                                                  value: controller.selectedPriorityDetail,
+                                                  icon: Icon(
+                                                    Icons.keyboard_arrow_down,
+                                                    // You can change this icon to whatever you want
+                                                    color: AppColors
+                                                        .grey, // Set the color of the icon
+                                                  ),
+                                                  decoration:
+                                                      const InputDecoration(
+                                                    contentPadding:
+                                                        EdgeInsets.fromLTRB(
+                                                            10, 20, 10, 20),
+                                                    filled: true,
+                                                    fillColor: Colors.white,
+                                                    border: InputBorder.none,
+                                                    // Remove underline
+                                                    enabledBorder:
+                                                        InputBorder.none,
+                                                    // Remove underline for enabled state
+                                                    focusedBorder:
+                                                        InputBorder.none,
+                                                  ),
+                                                ),
+
+                                                Divider(
+                                                  color: AppColors.grey,
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ],
+                              ),
+                            ),
+
+                            ///location
+
+                            if (read.selectedCategoryDataDetail?.hasAsterisk == 1)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        "Location",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.grey),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        flex: 7,
+                                        child: Column(
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Image.asset(
+                                                  locationImage,
+                                                  width: 25,
+                                                  height: 25,
+                                                ),
+                                                const SizedBox(
+                                                  width: 5,
+                                                ),
+                                                Expanded(
+                                                  // width: 180,
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      AppTextFormWidget(
+                                                        readOnly: true,
+                                                        hintText:
+                                                            "Select Location",
+                                                        controller: read
+                                                            .locationController,
+                                                        style:
+                                                            Theme.of(context)
+                                                                .textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                                  fontSize:
+                                                                      14,
+                                                                ),
+                                                        onChanged: (query) {
+                                                          print(
+                                                              "query===$query");
+                                                          read.searchCityList(
+                                                              query);
+                                                        },
+                                                        sufixIcon: Padding(
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .all(1.0),
+                                                          child: Image.asset(
+                                                            location2Image,
+                                                            width: 35,
+                                                            height: 35,
+                                                          ),
+                                                        ),
+                                                        hintStyle:
+                                                            const TextStyle(
+                                                          fontSize: 14,
+                                                          fontWeight:
+                                                              FontWeight
+                                                                  .normal,
+                                                        ),
+                                                        // validator: (value) {
+                                                        //   if(value!.isEmpty && value==""){
+                                                        //     return "Please enter Location";
+                                                        //   }
+                                                        // },
+                                                      ),
+                                                      Divider(
+                                                        color: AppColors.grey,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+
+                                          ],
+                                        )),
+                                  ],
+                                ),
+                              ),
+
+                            /// Question Answer
+                            if (read.selectedCategoryDataDetail?.hasAsterisk == 1)
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Row(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        "Question",
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium
+                                            ?.copyWith(color: AppColors.grey),
+                                      ),
+                                    ),
+                                    Expanded(
+                                        flex: 7,
+                                        child: Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Expanded(
+                                              flex: 1,
+                                              child: Image.asset(
+                                                questionMarkImage,
+                                                width: 25,
+                                                height: 25,
+                                              ),
+                                            ),
+                                            const SizedBox(
+                                              width: 5,
+                                            ),
+                                            Expanded(
+                                              flex: 8,
+                                              // width: 180,
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisSize:
+                                                    MainAxisSize.min,
+                                                children: [
+                                                  Text(
+                                                    "What needs to be done?",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600),
+                                                  ),
+                                                  AppTextFormWidget(
+                                                    hintText: "UnAnswered",
+                                                    controller: read
+                                                        .editsecondAnswerController,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          fontSize: 14,
+                                                        ),
+                                                    hintStyle:
+                                                        const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                                    // validator: (value) {
+                                                    //   if(value!.isEmpty && value==""){
+                                                    //     return "Please enter Location";
+                                                    //   }
+                                                    // },
+                                                  ),
+                                                  Text(
+                                                    "What caused it?",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.copyWith(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w600),
+                                                  ),
+                                                  AppTextFormWidget(
+                                                    hintText: "UnAnswered",
+                                                    controller: read
+                                                        .editfirstAnswerController,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                          fontSize: 14,
+                                                        ),
+                                                    hintStyle:
+                                                        const TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.normal,
+                                                    ),
+                                                    // validator: (value) {
+                                                    //   if(value!.isEmpty && value==""){
+                                                    //     return "Please enter Location";
+                                                    //   }
+                                                    // },
+                                                  ),
+                                                  Divider(
+                                                    color: AppColors.grey,
+                                                  )
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        )),
+                                  ],
+                                ),
+                              ),
+
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      SharedStorage.instance.role == "worker"
+                                          ? "Report to delegate"
+                                          : "Report Issue to",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppColors.grey),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 7,
+                                    child: Row(
+                                      children: [
+                                        Image.asset(
+                                          userIconImage,
+                                          width: 25,
+                                          height: 25,
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              DropdownButtonFormField<String>(
+                                                items: [
+                                                  DropdownMenuItem<String>(
+                                                    value: null,
+                                                    // Default "Choose" option
+                                                    child: Text(
+                                                      "Choose",
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodyMedium
+                                                          ?.copyWith(
+                                                              color: AppColors
+                                                                  .grey),
+                                                    ),
+                                                  ),
+                                                  ...controller.assignReport
+                                                      .map((category) {
+                                                    return DropdownMenuItem<
+                                                        String>(
+                                                      onTap: () {
+                                                        // controller.setReportId(
+                                                        //     category.id
+                                                        //         .toString());
+                                                        // Navigator.pop(context);
+                                                      },
+                                                      value: category
+                                                          .displayName
+                                                          .toString(),
+                                                      child: Row(
+                                                        children: <Widget>[
+                                                          Image.network(
+                                                            category.image ??
+                                                                "",
+                                                            height: 15,
+                                                            width: 15,
+                                                            fit: BoxFit
+                                                                .fitWidth,
+                                                          ),
+                                                          const SizedBox(
+                                                              width: 5),
+                                                          Text(
+                                                            category.displayName ??
+                                                                "",
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodySmall
+                                                                ?.copyWith(
+                                                                    color: AppColors
+                                                                        .grey),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    );
+                                                  })
+                                                ],
+                                                onChanged: (newValue) {
+                                                  controller.setReportDetail(newValue);
+
+                                                },
+                                                value: controller.selectedReportIsDetail,
+                                                icon: Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                  // You can change this icon to whatever you want
+                                                  color: AppColors
+                                                      .grey, // Set the color of the icon
+                                                ),
+                                                decoration:
+                                                    const InputDecoration(
+                                                  contentPadding:
+                                                      EdgeInsets.fromLTRB(
+                                                          10, 20, 8, 20),
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                  border: InputBorder.none,
+                                                  // Remove underline
+                                                  enabledBorder:
+                                                      InputBorder.none,
+                                                  // Remove underline for enabled state
+                                                  focusedBorder:
+                                                      InputBorder.none,
+                                                ),
+                                              ),
+
+                                              Divider(
+                                                color: AppColors.grey,
+                                              )
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: Text(
+                                      SharedStorage.instance.role == "worker"
+                                          ? "Notify Safety Rep"
+                                          : "Notify Others",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(color: AppColors.grey),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    flex: 7,
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          flex: 1,
+                                          child: Image.asset(
+                                            alertIconImage,
+                                            // Ensure this path is correct
+                                            width: 25,
+                                            height: 25,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 5),
+                                        Expanded(
+                                          flex: 8,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              GestureDetector(
+                                                onTap: () {
+                                                  _showMultiSelectAssignReport(
+                                                      context, controller);
+                                                },
+                                                child: Container(
+                                                    height: 40,
+                                                    // width: 200,
+                                                    decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                            color: Colors
+                                                                .transparent)),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        controller
+                                                                .selectedReportsDetail
+                                                                .isNotEmpty
+                                                            ? AvatarStack(
+                                                                height:
+                                                                    25.isFinite
+                                                                        ? 25
+                                                                        : 0,
+                                                                width: 160,
+                                                                settings:
+                                                                    settings,
+                                                                avatars: [
+                                                                  for (var n =
+                                                                          0;
+                                                                      n <
+                                                                          controller
+                                                                              .selectedReportsDetail.length;
+                                                                      n++)
+                                                                    NetworkImage(
+                                                                        controller.selectedReportsDetail[n].image ??
+                                                                            ""),
+                                                                ],
+                                                                infoWidgetBuilder: (surplus) =>
+                                                                    _infoWidget(
+                                                                        surplus,
+                                                                        context),
+                                                              )
+                                                            : Align(
+                                                                alignment:
+                                                                    Alignment
+                                                                        .bottomLeft,
+                                                                child: Text(
+                                                                  "Select",
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .bodyMedium
+                                                                      ?.copyWith(
+                                                                          color:
+                                                                              AppColors.grey),
+                                                                )),
+                                                        const Padding(
+                                                          padding:
+                                                              EdgeInsets.only(
+                                                                  right: 8.0),
+                                                          child: Icon(Icons
+                                                              .keyboard_arrow_down_outlined),
+                                                        )
+                                                      ],
+                                                    )),
+                                              ),
+                                            
+                                              const Divider()
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  "Attachment",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(color: AppColors.grey),
+                                )),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                // Add your attachment widget here
+                                GestureDetector(
+                                  onTap: () {
+                                    _imageBottomSheetMenu(
+                                        context, width, controller);
+                                  },
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(color: Colors.grey),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Center(
+                                      child:
+                                          Icon(Icons.add, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                // Example attachment preview
+
+                                Container(
+                                  height: 60,
+                                  child: ListView.separated(
+                                    shrinkWrap: true,
+                                    scrollDirection: Axis.horizontal,
+                                    separatorBuilder: (context, index) =>
+                                        const SizedBox(
+                                      width: 4,
+                                    ),
+                                    itemCount: controller.imagesDetail.length +
+                                        controller.filesDetail.length +
+                                        (controller.videoFileDetail != null
+                                            ? 1
+                                            : 0),
+                                    itemBuilder: (context, index) {
+                                      if (index < controller.imagesDetail.length) {
+                                        final image =
+                                            controller.imagesDetail[index];
+                                        return Stack(
+                                          children: [
+                                            Image.file(
+                                              File(image),
+                                              width: 60,
+                                              height: 60,
+                                              fit: BoxFit.cover,
+                                            ),
+                                            Positioned(
+                                              right: -10,
+                                              top: -10,
+                                              child: IconButton(
+                                                icon: const Icon(Icons.cancel,
+                                                    color: Colors.grey),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    controller.images
+                                                        .removeAt(index);
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      } else if (index <
+                                          controller.imagesDetail.length +
+                                              controller.filesDetail.length) {
+                                        final fileIndex =
+                                            index - controller.imagesDetail.length;
+                                        final file =
+                                            controller.filesDetail[fileIndex];
+                                        return Stack(
+                                          children: [
+                                            const Icon(
+                                              Icons.attach_file,
+                                              size: 60,
+                                              color: Colors.grey,
+                                            ),
+                                            Positioned(
+                                              right: -10,
+                                              top: -10,
+                                              child: IconButton(
+                                                icon: const Icon(Icons.cancel,
+                                                    color: Colors.grey),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    controller.files
+                                                        .removeAt(fileIndex);
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      } else {
+                                        return Stack(
+                                          children: [
+                                            controller.videoLoader == true &&
+                                                    controller.video != null
+                                                ? CircularProgressIndicator(
+                                                    color: AppColors.primary,
+                                                  )
+                                                : AspectRatio(
+                                                    aspectRatio: controller
+                                                        .vController!
+                                                        .value
+                                                        .aspectRatio,
+                                                    child: VideoPlayer(
+                                                        controller
+                                                            .vController!),
+                                                  ),
+                                            Positioned(
+                                              right: -10,
+                                              top: -10,
+                                              child: IconButton(
+                                                icon: const Icon(Icons.cancel,
+                                                    color: Colors.grey),
+                                                onPressed: () {
+                                                  setState(() {
+                                                    controller.videoFile =
+                                                        null;
+                                                    controller.vController
+                                                        ?.dispose();
+                                                    controller.vController =
+                                                        null;
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      }
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+
+                            // Buttons row
+                            Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                    child: AppButton(
+                                  radius: 8,
+                                  height: 50,
+                                  bgColor: AppColors.grey,
+                                  title: "CANCEL",
+                                  onTap: () {
+                                    read.dateToController.clear();
+                                    read.titleController.clear();
+                                    read.descriptionController.clear();
+                                    read.locationController.clear();
+                                    read.firstAnswerController.clear();
+                                    read.secondAnswerController.clear();
+                                    read.selectedIssueStatus = "Open";
+                                    read.selectedCategory = null;
+                                    read.selectedCategoryId = null;
+                                    read.selectedCountryId = null;
+                                    read.selectedReports.clear();
+                                    controller.selectedReportIs = null;
+                                    controller.selectedPriority = null;
+                                    controller.selectedReportId = "";
+                                    controller.selectedReportsId = [];
+                                    controller.videoFile = null;
+                                    controller.images = [];
+                                    controller.files = [];
+                                    Navigator.pop(context);
+                                  },
+                                )),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                    child: AppButton(
+                                  radius: 8,
+                                  height: 50,
+                                  bgColor: AppColors.primary,
+                                  title: "UPDATE",
+                                  onTap: () {
+
+                                      final data = AddIssueModel(
+                                          date: read.dateToController.text,
+                                          title: read.titleController.text,
+                                          description:
+                                              read.descriptionController.text,
+                                          issueLocation:
+                                              read.locationController.text,
+                                          question1:
+                                              read.firstAnswerController.text,
+                                          question2: read
+                                              .secondAnswerController.text,
+                                          status:
+                                              controller.selectedIssueStatus =="Open" ? "0":"1",
+                                          category:
+                                              read.selectedCategoryId ?? "",
+                                          priority:
+                                              controller.selectedPriority ??
+                                                  "",
+                                          reportIssue:
+                                              controller.selectedReportId,
+                                          notifyList:
+                                              controller.selectedReportsId,
+                                          video: controller.videoFile,
+                                          images: controller.images,
+                                          files: controller.files);
+                                      print(
+                                          "img===${controller.images.first}");
+                                      controller.addIssue(
+                                        context,
+                                        data,
+                                        (value) {
+                                          if (value == true) {
+                                            read.dateToController.clear();
+                                            read.titleController.clear();
+                                            read.descriptionController
+                                                .clear();
+                                            read.locationController.clear();
+                                            read.firstAnswerController
+                                                .clear();
+                                            read.secondAnswerController
+                                                .clear();
+                                            read.selectedIssueStatus = "Open";
+                                            read.selectedCategory = null;
+                                            read.selectedCategoryId = null;
+                                            read.selectedCountryId = null;
+                                            controller.selectedReportIs =
+                                                null;
+                                            read.selectedReports.clear();
+                                            controller.selectedPriority =
+                                                null;
+                                            controller.selectedReportId = "";
+                                            controller.selectedReportsId = [];
+                                            controller.videoFile = null;
+                                            controller.images = [];
+                                            controller.files = [];
+                                            Navigator.pop(context);
+                                          }
+                                        },
+                                      );
+                                    }
+
+                                )),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    )),
+              ),
+            ),
+          ),
+        );
+      });
+}
+
+final settings = RestrictedPositions(
+  maxCoverage: -0.1,
+  minCoverage: -0.5,
+  align: StackAlign.left,
+);
+
+Widget _infoWidget(int surplus, BuildContext context) {
+  return FittedBox(
+    fit: BoxFit.contain,
+    child: Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Text(
+        '+$surplus',
+        style: Theme.of(context).textTheme.titleLarge,
+      ),
+    ),
+  );
+}
+
+void _imageBottomSheetMenu(
+    BuildContext context, width, IssueController controller) {
+  showModalBottomSheet(
+      isScrollControlled: true,
+      context: context,
+      builder: (builder) {
+        return StatefulBuilder(
+          builder: (context, setState) => ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height *
+                  0.4, // Max height 80% of screen height
+            ),
+            child: SingleChildScrollView(
+                child: Container(
+                  width: width,
+                  decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(30.0),
+                          topRight: Radius.circular(30.0))),
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      bottom: MediaQuery.of(context).viewInsets.bottom,
+                    ),
+                    child: Column(
+                      children: [
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Container(
+                          height: 6,
+                          width: 60,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text("Attachment",
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 10),
+                        ListTile(
+                          onTap: () {
+                            controller.pickImage(ImageSource.camera,1);
+                            Navigator.pop(context);
+                          },
+                          contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                          horizontalTitleGap: 5,
+                          leading: Image.asset(
+                            cameraIcon,
+                            width: 20,
+                            height: 20,
+                          ),
+                          title: const Text("Take photo"),
+                        ),
+                        ListTile(
+                          onTap: () {
+                            controller.pickImage(ImageSource.gallery,1);
+                            Navigator.pop(context);
+                          },
+                          contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                          horizontalTitleGap: 5,
+                          leading: Image.asset(
+                            albumIcon,
+                            width: 20,
+                            height: 20,
+                          ),
+                          title: const Text("Select Image"),
+                        ),
+                        // ListTile(
+                        //   onTap: () {
+                        //     // controller.pickFile();
+                        //     Navigator.pop(context);
+                        //   },
+                        //   contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                        //
+                        //   horizontalTitleGap: 5,
+                        //   leading: Image.asset(fileIcon,width: 20,height: 20,),
+                        //   title: const Text("Upload File"),),
+                        ListTile(
+                          onTap: () {
+                            controller.pickVideo(1);
+                            Navigator.pop(context);
+                          },
+                          contentPadding: const EdgeInsets.fromLTRB(15, 0, 5, 0),
+                          horizontalTitleGap: 5,
+                          leading: Image.asset(
+                            videoCamera,
+                            width: 20,
+                            height: 20,
+                          ),
+                          title: const Text("add video"),
+                        ),
+                      ],
+                    ),
+                  ),
+                )),
+          ),
+        );
+      });
+}
+
+
+void _showMultiSelectAssignReport(BuildContext context, IssueController provider) {
+  TextEditingController searchController = TextEditingController();
+  List<AssignReport> filteredItems = List.from(provider.assignReport);
+
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.white,
+    isScrollControlled: true, // Makes the bottom sheet full-height
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20.0)),
+    ),
+    builder: (BuildContext context) {
+      return Padding(
+        padding: const EdgeInsets.only(top: 15.0), // Padding for content
+        child: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // Function to filter items based on search query
+            void _filterItems(String query) {
+              setState(() {
+                filteredItems = provider.assignReport.where((category) {
+                  return category.displayName!
+                      .toLowerCase()
+                      .contains(query.toLowerCase());
+                }).toList();
+              });
+            }
+
+            return ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.8,),
+              // color: AppColors.white,
+              // decoration: const BoxDecoration(borderRadius: BorderRadius.only(topRight: Radius.circular(10),topLeft: Radius.circular(10))),
+              // padding: const EdgeInsets.all(16.0), // General padding for bottom sheet content
+              // height: MediaQuery.of(context).size.height * 0.85, // Adjust height of bottom sheet
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  // Title of the bottom sheet
+                  Text(
+                    "Select User",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 10),
+
+                  // Search TextField
+                  TextField(
+                    controller: searchController,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(color: AppColors.primary),
+                    decoration: InputDecoration(
+                      hintText: 'Search',
+                      hintStyle: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: AppColors.primary),
+                      prefixIcon: const Icon(Icons.search),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: const OutlineInputBorder(),
+                      focusedBorder: const OutlineInputBorder(),
+                    ),
+                    onChanged: (value) => _filterItems(value),
+                  ),
+                  const SizedBox(height: 5),
+                  Text("If you can’t find your Delegate, please contact your Union to add them.",
+                    style: Theme.of(context).textTheme.labelMedium?.copyWith(color: AppColors.grey),),
+                  const SizedBox(height: 10),
+
+                  // Filtered List of AssignReports
+                  Expanded(
+                    child: ListView(
+                      children: filteredItems.map((category) {
+                        return CheckboxListTile(
+                          contentPadding: EdgeInsets.fromLTRB(10, 0, 10, 0),
+                          activeColor: AppColors.primary,
+
+                          value: provider.selectedReportsIdDetail
+                              .contains(category.id.toString()),
+                          title: Row(
+                            children: <Widget>[
+                              Image.network(
+                                category.image ?? "",
+                                height: 15,
+                                width: 15,
+                                fit: BoxFit.fitWidth,
+                              ),
+                              const SizedBox(width: 5),
+                              Expanded(
+                                child: Text(
+                                  category.displayName ?? "",
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              provider.toggleReportSelectionDetail();
+                              provider.toggleReportSelection1Deatil(
+                                  category.id.toString());
+                              provider.updateGroupValue(3, false);
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    },
+  );
+}
+

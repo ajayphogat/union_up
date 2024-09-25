@@ -8,27 +8,27 @@ class MoreController extends ChangeNotifier {
   var community = [
     {
     "title":"Profile",
-      "img": highImage
+      "img": userIconImage
   },
     {
     "title":"Groups",
-      "img": highImage
+      "img": groupIcon
   },
     {
     "title":"Events",
-      "img": highImage
+      "img": eventIcon
   },
     {
     "title":"Headsup",
-      "img": highImage
+      "img": headsUpIcon
   },
     {
     "title":"Message",
-      "img": highImage
+      "img": messageIcon
   },
     {
     "title":"Member",
-      "img": highImage
+      "img": memberIcon
   },
 
   ];
@@ -36,11 +36,11 @@ class MoreController extends ChangeNotifier {
 
     {
       "title":"Disputes",
-      "img": highImage
+      "img": disputeIcon
     },
     {
       "title":"EAs/Awards",
-      "img": highImage
+      "img": awardIcon
     },
 
 
@@ -49,11 +49,11 @@ class MoreController extends ChangeNotifier {
 
     {
       "title":"Terms of use",
-      "img": highImage
+      "img": disputeIcon
     },
     {
       "title":"Settings",
-      "img": highImage
+      "img": awardIcon
     },
 
 

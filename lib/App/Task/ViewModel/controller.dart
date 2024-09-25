@@ -24,6 +24,15 @@ class TaskController extends ChangeNotifier {
   TextEditingController descriptionController =TextEditingController();
   TextEditingController dateToController = TextEditingController();
   TextEditingController commentController = TextEditingController();
+  TextEditingController replyCommentController = TextEditingController();
+
+
+  TextEditingController assigneeController = TextEditingController();
+
+  updateAssignController(){
+    assigneeController.text =  "${selectedReports.isEmpty ? "" : "${selectedReports.length} User"} ${selectedReportsId.isEmpty ? "" : "${selectedReportsId.length} Group"}";
+
+  }
 
 
 
@@ -49,11 +58,33 @@ class TaskController extends ChangeNotifier {
   String selectedReportIs= "";
   List<String> selectedReports = [];
   List<String> selectedReportsId = [];
+
   bool isFetching = false;
   bool pageLoader = false;
   bool pageIncrease = false;
   int pageNo1 = 1;
 
+ bool isTaskDetailOpening = false;
+
+  int? _activeReplyIndex;
+  int? get activeReplyIndex => _activeReplyIndex;
+
+  set activeReplyIndex(int? index) {
+    if (_activeReplyIndex == index) {
+      replyCommentController.clear();
+    } else {
+      _activeReplyIndex = index;
+      replyCommentController.clear();
+    }
+
+    notifyListeners();
+  }
+
+
+ updateRoute(value){
+   isTaskDetailOpening=value;
+   notifyListeners();
+ }
 
   updateExpand(){
      isExpanded = !isExpanded;
@@ -118,25 +149,40 @@ class TaskController extends ChangeNotifier {
      pageNo1 =1;
      var homeController = Provider.of<HomeController>(context, listen: false);
      homeController.getHomeData(context);
-     ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
-           content: Text("Task added successfully",style: Theme.of(context).textTheme.labelLarge,),
-           backgroundColor: AppColors.primary,
-         ),);
+     // ScaffoldMessenger.of(context).showSnackBar(
+     //     SnackBar(
+     //       content: Text("Task added successfully",style: Theme.of(context).textTheme.labelLarge,),
+     //       backgroundColor: AppColors.primary,
+     //     ),);
+     snackbar(context, "Task added successfully");
      getTaskList(context);
       notifyListeners();
     }
   }
 
   taskDetail(BuildContext context,String id,ValueSetter<bool> onResponse)async {
-    final result = await taskApi.taskDetail(context,id);
-    if(result != null){
-      taskData = result.data;
-      assigneeUserList=result.data?.assigneDisplayName ??[];
-      assigneeGroupList=result.data?.assigneGroupName ??[];
-      // getAllComment(context, id);
-       onResponse(true);
-      notifyListeners();
+
+
+    try {
+      updateRoute(true);
+      taskData=null;
+      assigneeUserList.clear();
+      assigneeGroupList.clear();
+      final result = await taskApi.taskDetail(context,id);
+      if(result != null){
+        updateRoute(false);
+        taskData = result.data;
+        assigneeUserList=result.data?.assigneDisplayName ??[];
+        assigneeGroupList=result.data?.assigneGroupName ??[];
+        getAllComment(context, id);
+         onResponse(true);
+        notifyListeners();
+      }else{
+       updateRoute(false);
+      }
+    } finally {
+      // TODO
+      updateRoute(false);
     }
   }
 
@@ -207,22 +253,27 @@ class TaskController extends ChangeNotifier {
     DateTime dateTime;
 
     try {
-      // Try parsing "MM/dd/yyyy hh:mm a" (e.g., "09/03/2024 10:59 AM")
-      dateTime = DateFormat("MM/dd/yyyy hh:mm a").parse(date);
+      // Try parsing ISO 8601 format (e.g., "2024-08-12T05:30:56")
+      dateTime = DateTime.parse(date);
     } catch (e) {
       try {
-        // Try parsing "MM/dd/yyyy" (e.g., "09/05/2024")
-        dateTime = DateFormat("MM/dd/yyyy").parse(date);
+        // Try parsing "MM/dd/yyyy hh:mm a" (e.g., "09/03/2024 10:59 AM")
+        dateTime = DateFormat("MM/dd/yyyy hh:mm a").parse(date);
       } catch (e) {
         try {
-          // Try parsing "MMMM d, yyyy" (e.g., "September 10, 2024")
-          dateTime = DateFormat("MMMM d, yyyy").parse(date);
+          // Try parsing "MM/dd/yyyy" (e.g., "09/05/2024")
+          dateTime = DateFormat("MM/dd/yyyy").parse(date);
         } catch (e) {
           try {
-            // Try parsing "dd-MM-yyyy" (e.g., "24-9-2024")
-            dateTime = DateFormat("dd-MM-yyyy").parse(date);
+            // Try parsing "MMMM d, yyyy" (e.g., "September 10, 2024")
+            dateTime = DateFormat("MMMM d, yyyy").parse(date);
           } catch (e) {
-            return "Invalid Date Format";
+            try {
+              // Try parsing "dd-MM-yyyy" (e.g., "24-9-2024")
+              dateTime = DateFormat("dd-MM-yyyy").parse(date);
+            } catch (e) {
+              return "Invalid Date Format";
+            }
           }
         }
       }
@@ -348,8 +399,8 @@ class TaskController extends ChangeNotifier {
 
   setPage() {
     pageIncrease = true;
-    print("pageNo1====$pageNo1");
-    pageNo1++;
+    // pageNo1++;
+    pageNo1 =1;
     notifyListeners();
   }
 
@@ -367,5 +418,99 @@ class TaskController extends ChangeNotifier {
   }
 
   IssueApi issueApi =IssueApi();
+
+
+  TextEditingController editTitleController =TextEditingController();
+  TextEditingController editDescriptionController =TextEditingController();
+  TextEditingController editDateToController = TextEditingController();
+  TextEditingController editAssigneeController = TextEditingController();
+  String? selectedPriorityDetail;
+  List<String> editSelectedReportsIdGroup = [];
+  List<String> selectedReportsUser = [];
+
+
+  setPriorityDetail(value){
+    selectedPriorityDetail =value;
+    notifyListeners();
+  }
+
+  void editDetail(String date, String title, String subtitle, String priority,
+      List<String> assignToDelegateUser, List<String> assignToGroup) {
+
+    // Assign the controllers
+    editDateToController.text = date;
+    editTitleController.text = title;
+    editDescriptionController.text = subtitle;
+
+    // Function to try parsing the date with different formats
+    DateTime? parseDate(String dateString) {
+      List<DateFormat> dateFormats = [
+        DateFormat('MMMM d, yyyy'),   // Format for "September 18, 2024"
+        DateFormat('MM/dd/yyyy'),     // Format for "09/30/2024"
+        DateFormat('d-MMMM-yyyy'),    // Format for "16-September-2024"
+      ];
+
+      for (var format in dateFormats) {
+        try {
+          return format.parse(dateString);
+        } catch (e) {
+          // Ignore and try the next format
+        }
+      }
+      // If no format works, return null or handle error
+      return null;
+    }
+
+    // Parse the date using the helper function
+    DateTime? parsedDate = parseDate(date);
+
+    if (parsedDate != null) {
+      selectedDate = parsedDate;
+      print("Parsed Date: $selectedDate");
+    } else {
+      print("Invalid date format: $date");
+    }
+
+    // Handling priority selection
+    if(priority != "") {
+      selectedPriorityDetail = priorityList
+          .firstWhere(
+            (element) =>
+                element['name'].toUpperCase() == priority.toUpperCase(),
+          )['name']
+          .toString();
+    }else{
+      selectedPriorityDetail =null;
+    }
+
+    // Clear and assign delegate users and groups
+    selectedReportsUser.clear();
+    editSelectedReportsIdGroup.clear();
+
+    selectedReportsUser = assignToDelegateUser;
+    editSelectedReportsIdGroup = assignToGroup;
+
+    notifyListeners();
+  }
+
+
+  void toggleReportSelection1Detail(String id) {
+    if (editSelectedReportsIdGroup.contains(id)) {
+      editSelectedReportsIdGroup.remove(id);
+    } else {
+      editSelectedReportsIdGroup.add(id);
+
+    }
+    notifyListeners();
+  }
+  void toggleReportSelectionDetail(String reportName) {
+    if (selectedReportsUser.contains(reportName)) {
+      selectedReportsUser.remove(reportName);
+    } else {
+      selectedReportsUser.add(reportName);
+
+    }
+    notifyListeners();
+  }
 
 }

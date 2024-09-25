@@ -20,37 +20,43 @@ class HomeScreen extends StatelessWidget {
       builder: (context, controller, child) => Scaffold(
         // appBar: appBar(),
         body: SafeArea(
-            child: ListView(
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            assignTask(context, width),
-            const SizedBox(
-              height: 10,
-            ),
-            top(context, controller),
-            const SizedBox(
-              height: 10,
-            ),
-            task(context, width, height, controller),
-            const SizedBox(
-              height: 15,
-            ),
-            activity(context, width, height, controller),
-            const SizedBox(
-              height: 15,
-            ),
-            event(context, width, height, "Group", controller.groups),
-            const SizedBox(
-              height: 15,
-            ),
-            event(context, width, height, "Event", controller.events),
-            const SizedBox(
-              height: 30,
-            ),
-          ],
-        )),
+            child: RefreshIndicator(
+              onRefresh:()=> controller.getHomeData(context),
+              child: ListView(
+                        children: [
+              const SizedBox(
+                height: 10,
+              ),
+              assignTask(context, width),
+              const SizedBox(
+                height: 10,
+              ),
+              top(context, controller),
+              const SizedBox(
+                height: 10,
+              ),
+              task(context, width, height, controller),
+              const SizedBox(
+                height: 15,
+              ),
+              activity(context, width, height, controller),
+              const SizedBox(
+                height: 15,
+              ),
+              if(controller.groups.isNotEmpty)
+              event(context, width, height, "Group", controller.groups),
+              const SizedBox(
+                height: 15,
+              ),
+
+             if(controller.events.isNotEmpty)
+              event(context, width, height, "Event", controller.events),
+              const SizedBox(
+                height: 30,
+              ),
+                        ],
+                      ),
+            )),
       ),
     );
   }
@@ -59,6 +65,8 @@ class HomeScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 10.0),
       child: Card(
+        surfaceTintColor: AppColors.white,
+        color: AppColors.white,
         child: Container(
           width: width,
           child: Padding(
@@ -131,6 +139,8 @@ class HomeScreen extends StatelessWidget {
           Expanded(
               flex: 1,
               child: Card(
+                surfaceTintColor: AppColors.white,
+                color: AppColors.white,
                 child: Container(
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -168,6 +178,8 @@ class HomeScreen extends StatelessWidget {
           Expanded(
               flex: 1,
               child: Card(
+                surfaceTintColor: AppColors.white,
+                color: AppColors.white,
                 child: Container(
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
@@ -297,8 +309,8 @@ class HomeScreen extends StatelessWidget {
                                   child: Center(
                                       child: Text(
                                     index == 0
-                                        ? "${controller.homeData?.assignedCount}"
-                                        : "${controller.homeData?.overdueCount}",
+                                        ? "${controller.homeData?.assignedCount ??0}"
+                                        : "${controller.homeData?.overdueCount??0}",
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium
@@ -436,12 +448,12 @@ class HomeScreen extends StatelessWidget {
                   "Activity",
                   style: Theme.of(context)
                       .textTheme
-                      .headlineMedium
+                      .titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   "See All",
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold, color: AppColors.primary),
                 ),
               ],
@@ -525,7 +537,7 @@ class HomeScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20)),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 15.0, vertical: 4),
+                            horizontal: 15.0, vertical: 2),
                         child: Row(
                           children: [
                             Text(
@@ -549,7 +561,7 @@ class HomeScreen extends StatelessWidget {
               height: 15,
             ),
             Container(
-              height: 200,
+              height: height*.2,
               child: ListView.builder(
                   itemCount: list.length,
                   shrinkWrap: true,
@@ -557,7 +569,7 @@ class HomeScreen extends StatelessWidget {
                   itemBuilder: (context, index) {
                     var data = list[index];
                     return card(context, data.image ?? "", data.name ?? "",
-                        data.type ?? "", data.memberCount ?? "");
+                        data.type ?? "", data.memberCount ?? "",width,height);
                   }),
             ),
             const SizedBox(
@@ -569,13 +581,13 @@ class HomeScreen extends StatelessWidget {
               },
               child: Container(
                 width: width,
-                height: 45,
+                height: 44,
                 decoration: BoxDecoration(
                     border: Border.all(color: AppColors.grey),
                     borderRadius: BorderRadius.circular(30)),
                 child: Center(
                   child: Text("See All",
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.normal, color: AppColors.grey)),
                 ),
               ),
@@ -587,7 +599,7 @@ class HomeScreen extends StatelessWidget {
   }
 
   Widget card(BuildContext context, String img, String title, String subTitle,
-      String member) {
+      String member,width,height) {
     return Padding(
       padding: const EdgeInsets.only(right: 8.0),
       child: Card(
@@ -596,7 +608,7 @@ class HomeScreen extends StatelessWidget {
         ),
         child: Container(
           // height: 50,
-          width: 180,
+          width: width*.38,
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(8),
@@ -608,8 +620,8 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
                     img,
-                    height: 140,
-                    width: 180,
+                    height: height*.13,
+                    width: width*.38,
                     fit: BoxFit.cover,
                   )),
               Padding(
@@ -627,28 +639,32 @@ class HomeScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: Container(
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
                         subTitle,
                         style: Theme.of(context)
                             .textTheme
-                            .labelLarge
-                            ?.copyWith(color: AppColors.grey),
+                            .labelSmall
+                            ?.copyWith(color: AppColors.black),
                       ),
-                      // SizedBox(width: 10,),
+                      SizedBox(width: 5,),
+                      Text("•",textAlign: TextAlign.center,),
+                      SizedBox(width: 5,),
+
 
                       Text(
-                        "${member} Members",
+                        "${member !="" ? member:"0"} Members",
                         style: Theme.of(context)
                             .textTheme
-                            .labelLarge
-                            ?.copyWith(color: AppColors.grey),
+                            .labelSmall
+                            ?.copyWith(color: AppColors.black),
                       ),
                     ],
                   ),
                 ),
               ),
+              SizedBox(height: 5,)
             ],
           ),
         ),

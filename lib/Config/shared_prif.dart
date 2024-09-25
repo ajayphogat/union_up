@@ -13,11 +13,13 @@ class SharedStorage {
     required String username,
     required String email,
     required String phone,
+    required String image,
 
   }) async{
     await localStorage!.setString("username", username);
     await localStorage!.setString("userEmail", email);
     await localStorage!.setString("userPhone", phone);
+    await localStorage!.setString("userImage", image);
   }
 
 
@@ -25,6 +27,8 @@ class SharedStorage {
   String? get userName => localStorage!.getString("username") ?? "";
   String? get userEmail => localStorage!.getString("userEmail") ?? "";
   String? get userPhone => localStorage!.getString("userPhone") ?? "";
+  String? get userImage => localStorage!.getString("userImage") ?? "";
+  String? get role => localStorage!.getString("role") ?? "";
 
 
   static const introSeen="introSeen";

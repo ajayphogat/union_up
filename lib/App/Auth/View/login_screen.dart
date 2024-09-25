@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 import 'package:union_up/App/Auth/View/register_screen.dart';
 import 'package:union_up/Common/image_path.dart';
 import '../../../Common/app_colors.dart';
@@ -8,8 +9,34 @@ import '../../../Widget/app_button.dart';
 import '../../Bottom/View/bottom_bar_screen.dart';
 import '../ViewModel/auth_controller.dart';
 
-class LoginScreen extends StatelessWidget {
+final shorebirdCodePush = ShorebirdCodePush();
+
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+
+  @override
+  void initState() {
+    shorebirdCodePush
+        .currentPatchNumber()
+        .then((value) => print('current patch number is $value'));
+    super.initState();
+  }
+
+  Future<void> _checkForUpdates() async {
+    // Check whether a patch is available to install.
+    final isUpdateAvailable = await shorebirdCodePush.isNewPatchAvailableForDownload();
+
+    if (isUpdateAvailable) {
+      // Download the new patch if it's available.
+      await shorebirdCodePush.downloadUpdateIfAvailable();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +133,7 @@ class LoginScreen extends StatelessWidget {
               height: height * .035,
             ),
             Text(
-              "Email Address",
+              "Email Address *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -166,8 +193,14 @@ class LoginScreen extends StatelessWidget {
             SizedBox(
               height: height * .02,
             ),
+            // RichText(text: TextSpan(
+            //   children:
+            //     [
+            //       TextSpan(text: "Password")
+            //     ]
+            // )),
             Text(
-              "Password",
+              "Password *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -224,16 +257,15 @@ class LoginScreen extends StatelessWidget {
                   validator: (value) {
                     if (value!.isEmpty) {
                       return "Please enter password";
-                    } else if (value.length < 6 ||  value.length>16) {
-                      return "Password should be 6 to 16 digit";
                     }
+                    // else if (value.length < 6 ||  value.length>16) {
+                    //   return "Password should be 6 to 16 digit";
+                    // }
                     return null;
                   },
                 ),
               ),
             ),
-
-
             const SizedBox(
               height: 10,
             ),
@@ -245,13 +277,13 @@ class LoginScreen extends StatelessWidget {
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: Text("Forgot Your Password ?",
+                    child: Text("Forgot Your Password?",
                         textAlign: TextAlign.center,
                         style: Theme.of(context)
                             .textTheme
                             .titleMedium
                             ?.copyWith(
-                                color: AppColors.secondaryColor,
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w600)),
                   ),
                 )),
@@ -264,10 +296,12 @@ class LoginScreen extends StatelessWidget {
                 height: 55,
                 radius: 10,
                 bgColor: AppColors.primary,
-                title: "Login",
+                title: "LOGIN",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: AppColors.white, fontWeight: FontWeight.bold),
                 onTap: ()async {
+
+                  _checkForUpdates();
                   if(authProvider.isLoginLoad==true){
                     return;
                   }
@@ -295,9 +329,6 @@ class LoginScreen extends StatelessWidget {
                 },
               ),
             ),
-
-
-
             const Spacer(),
             Center(
               child: RichText(
@@ -331,9 +362,6 @@ class LoginScreen extends StatelessWidget {
       ),
     );
   }
-
-
-
 }
 class LoginDataModel{
   String email;

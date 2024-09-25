@@ -21,6 +21,8 @@ class TaskScreen extends StatelessWidget {
     return Consumer<TaskController>(
       builder: (context, controller, child) => Scaffold(
         appBar: AppBar(
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.white,
           leading: Center(
             child: Text(
               "Tasks",
@@ -41,7 +43,8 @@ class TaskScreen extends StatelessWidget {
           ],
         ),
         floatingActionButton: FloatingActionButton(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),
           onPressed: () {
             _modalBottomSheetMenu(context, width, controller);
           },
@@ -52,52 +55,54 @@ class TaskScreen extends StatelessWidget {
           ), // Adjust color accordingly
         ),
         body: SafeArea(
-            child:   Column(
-              children: [
-                NotificationListener<ScrollNotification>(
-                  onNotification: (notification) {
-                    if (notification.metrics.pixels ==
-                        notification.metrics.maxScrollExtent) {
-                      if (!controller.isFetching) {
+            child: Column(
+          children: [
+            NotificationListener<ScrollNotification>(
+              onNotification: (notification) {
+                if (notification.metrics.pixels ==
+                    notification.metrics.maxScrollExtent) {
+                  if (!controller.isFetching) {
+                    controller.setValue(true, true);
+                    controller.setPage();
+                    controller.getTaskList(context);
 
-                        controller.setValue(true, true);
-                        controller.setPage();
-                        controller.getTaskList(context);
+                    Future.delayed(const Duration(seconds: 1))
+                        .then((value) => controller.setValue(false, false));
 
-                        Future.delayed(const Duration(seconds: 1)).then(
-                                (value) => controller.setValue(false, false));
-
-                        print("isLoading");
-                      }
-                    }
-                    return false;
-                  },
-                  child: Expanded(
-                    child: ListView(
-
-                              children: [body(context, controller, width)],
-                            ),
-                  ),
+                    print("isLoading");
+                  }
+                }
+                return false;
+              },
+              child: Expanded(
+                child: ListView(
+                  children: [body(context, controller, width)],
                 ),
-
-                if(controller.isFetching)
-                  Container(
-                      height:50,
-                      width: width,
-                      child: Center(child: CupertinoActivityIndicator(),)),
-                if(controller.isFetching)
-                  SizedBox(height: 50,)
-              ],
-            )),
+              ),
+            ),
+            if (controller.isFetching)
+              Container(
+                  height: 50,
+                  width: width,
+                  child: Center(
+                    child: CupertinoActivityIndicator(),
+                  )),
+            if (controller.isFetching)
+              SizedBox(
+                height: 50,
+              )
+          ],
+        )),
       ),
     );
   }
 
-  Widget body(
-      BuildContext context, TaskController controller, double width) {
+  Widget body(BuildContext context, TaskController controller, double width) {
     return Visibility(
-      visible: !controller.taskLoad,
-      replacement:const Center(child: CircularProgressIndicator.adaptive(),),
+      visible: controller.taskLoad ==false,
+      replacement: const Center(
+        child: CircularProgressIndicator.adaptive(),
+      ),
       child: Visibility(
         visible: controller.task.isNotEmpty,
         replacement: Center(
@@ -107,10 +112,11 @@ class TaskScreen extends StatelessWidget {
         child: Column(
           children: [
             const SizedBox(
-              height: 5,
+              height: 15,
             ),
             Container(
-              height: 35, width: width,
+              height: 35,
+              width: width,
               child: ListView.builder(
                 itemCount: 4,
                 scrollDirection: Axis.horizontal,
@@ -160,7 +166,7 @@ class TaskScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(
-              height: 5,
+              height: 15,
             ),
             ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
@@ -173,15 +179,24 @@ class TaskScreen extends StatelessWidget {
                       const EdgeInsets.only(bottom: 8.0, right: 10, left: 10),
                   child: ListTile(
                     onTap: () {
-                      controller.taskDetail(
-                        context,
-                        task.id.toString(),
-                        (value) {
-                          if (value == true) {
-                            openTaskDetail(context,task.id.toString());
-                          }
-                        },
-                      );
+                      print("task routes===${controller.isTaskDetailOpening}");
+                      if (!controller.isTaskDetailOpening) {
+
+                        controller.taskDetail(
+                          context,
+                          task.id.toString(),
+                          (value) {
+                            if (value == true) {
+
+                              openTaskDetail(context, task.id.toString());
+
+                            }else{
+
+                            }
+                           // Reset the flag after opening
+                          },
+                        );
+                      }
                     },
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8)),
@@ -196,24 +211,24 @@ class TaskScreen extends StatelessWidget {
                                 task.title?.rendered ?? "",
                                 style: Theme.of(context)
                                     .textTheme
-                                    .bodyLarge
+                                    .titleMedium
                                     ?.copyWith(color: AppColors.black),
                                 maxLines: 1,
                               ),
                               const SizedBox(
                                 height: 2,
                               ),
-                              Text(
-                                controller.formatDates(task.modified ?? ""),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(color: AppColors.grey),
-                                maxLines: 2,
-                              ),
-                              const SizedBox(
-                                height: 5,
-                              )
+                              // Text(
+                              //   controller.formatDates(task.modified ?? ""),
+                              //   style: Theme.of(context)
+                              //       .textTheme
+                              //       .labelMedium
+                              //       ?.copyWith(color: AppColors.grey),
+                              //   maxLines: 2,
+                              // ),
+                              // const SizedBox(
+                              //   height: 5,
+                              // )
                             ],
                           ),
                         ),
@@ -246,83 +261,84 @@ class TaskScreen extends StatelessWidget {
                     ),
                     subtitle: Row(
                       children: [
-
-                        if(task.dueDate != "")
-                        Image.asset(
-                          calenderIcon,
-                          height: 12,
-                        ),
-                        if(task.dueDate!="")
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        if(task.dueDate != "")
-                        Text(
-                          "Due on ${controller.convertDate(task.dueDate ?? "" )}",
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelMedium
-                              ?.copyWith(color: AppColors.black),
-                        ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        if(task.priority !="")
-                        Image.asset(
-                          task.priority == "high" || task.priority == "High"
-                              ? highImage
-                              : task.priority == "medium"
-                                  ? mediumImage
-                                  : lowImage,
-                          height: 12,
-                          width: 12,
-                        ),
-                        if(task.priority !="")
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        if(task.priority !="")
-                        Text(
-                          task.priority ?? "",
-                          style: TextStyle(
-                              fontSize: 10,
-                              color: task.priority == "high" ||
-                                      task.priority == "High"
-                                  ? AppColors.red
-                                  : task.priority == "medium"
-                                      ? AppColors.orange
-                                      : AppColors.primary),
-                        ),
-                        const SizedBox(
-                          width: 10,
-                        ),
-                        if (task.assigneUser!.isNotEmpty)
+                        if (task.dueDate != null)
+                        if (task.dueDate != "")
                           Image.asset(
-                            userIconImage,
+                            calenderIcon,
+                            height: 12,
+                          ),
+                        if (task.dueDate != null)
+                        if (task.dueDate != "")
+                          const SizedBox(
+                            width: 5,
+                          ),
+                        if (task.dueDate != null)
+                        if (task.dueDate != "")
+                          Text(
+                            "Due on ${controller.convertDate(task.dueDate ?? "")}",
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelMedium
+                                ?.copyWith(color: AppColors.black),
+                          ),
+                        const SizedBox(
+                          width: 5,
+                        ),
+                        if (task.priority != "")
+                          Image.asset(
+                            task.priority == "high" || task.priority == "High"
+                                ? highImage
+                                : task.priority == "medium"
+                                    ? mediumImage
+                                    : lowImage,
                             height: 12,
                             width: 12,
                           ),
-                        const SizedBox(
-                          width: 5,
-                        ),
-                        if (task.assigneUser!.isNotEmpty)
-                        Container(
-                          width: 70,
-                          child: Text(
-                            task.assigneUser?[0].name ?? "",
-                            overflow: TextOverflow.ellipsis,
+                        if (task.priority != "")
+                          const SizedBox(
+                            width: 5,
+                          ),
+                        if (task.priority != "")
+                          Text(
+                            task.priority ?? "",
                             style: TextStyle(
                                 fontSize: 10,
-                               ),
+                                color: task.priority == "high" ||
+                                        task.priority == "High"
+                                    ? AppColors.red
+                                    : task.priority == "medium"
+                                        ? AppColors.orange
+                                        : AppColors.primary),
                           ),
+                        const SizedBox(
+                          width: 10,
                         ),
+                        // if (task.assigneUser!.isNotEmpty)
+                        //   Image.asset(
+                        //     userIconImage,
+                        //     height: 12,
+                        //     width: 12,
+                        //   ),
+                        // const SizedBox(
+                        //   width: 5,
+                        // ),
+                        // if (task.assigneUser!.isNotEmpty)
+                        //   Container(
+                        //     width: 70,
+                        //     child: Text(
+                        //       task.assigneUser?[0].name ?? "",
+                        //       overflow: TextOverflow.ellipsis,
+                        //       style: TextStyle(
+                        //         fontSize: 10,
+                        //       ),
+                        //     ),
+                        //   ),
                       ],
                     ),
                   ),
                 );
               },
             ),
-
           ],
         ),
       ),
@@ -333,6 +349,8 @@ class TaskScreen extends StatelessWidget {
       BuildContext context, width, TaskController controller) {
     showModalBottomSheet(
         isScrollControlled: true,
+        showDragHandle: true,
+        backgroundColor: AppColors.white,
         context: context,
         builder: (builder) {
           return Consumer<TaskController>(
@@ -357,23 +375,24 @@ class TaskScreen extends StatelessWidget {
                             bottom: MediaQuery.of(context).viewInsets.bottom,
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 18.0),
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                const SizedBox(
-                                  height: 20,
-                                ),
-                                Container(
-                                  height: 6,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
+                                // const SizedBox(
+                                //   height: 20,
+                                // ),
+                                // Container(
+                                //   height: 6,
+                                //   width: 60,
+                                //   decoration: BoxDecoration(
+                                //     color: Colors.grey[300],
+                                //     borderRadius: BorderRadius.circular(2),
+                                //   ),
+                                // ),
+                                // const SizedBox(height: 20),
                                 const Text(
                                   "Create Task",
                                   style: TextStyle(
@@ -403,6 +422,10 @@ class TaskScreen extends StatelessWidget {
                                     }
                                     return null; // Return null if validation passes
                                   },
+
+                                  onChanged: (p0) {
+
+                                  },
                                 ),
                                 AppTextFormWidget(
                                   hintText: "Tap to add a description...",
@@ -417,6 +440,12 @@ class TaskScreen extends StatelessWidget {
                                     fontSize: 18,
                                     fontWeight: FontWeight.normal,
                                   ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Task Description is required';
+                                    }
+                                    return null; // Return null if validation passes
+                                  },
                                 ),
                                 const SizedBox(height: 20),
 
@@ -453,57 +482,79 @@ class TaskScreen extends StatelessWidget {
                                               Expanded(
                                                 flex: 8,
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     DropdownButtonFormField(
-
-                                                      items:[
-                                                        DropdownMenuItem<String>(
-                                                          value: null,  // Default "Choose" option with null value
+                                                      items: [
+                                                        DropdownMenuItem<
+                                                            String>(
+                                                          value: null,
+                                                          // Default "Choose" option with null value
                                                           child: Text(
                                                             "Choose",
-                                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .bodyMedium
+                                                                ?.copyWith(
+                                                                    color: AppColors
+                                                                        .grey),
                                                           ),
                                                         ),
-                                                        ...controller.priorityList
-                                                          .map((category) {
-                                                        return DropdownMenuItem<
-                                                            String>(
-                                                          value: category["name"]
-                                                              .toString(),
-                                                          // Ensure this is a String too
-                                                          child: Row(
-                                                            children: <Widget>[
-                                                              Image.asset(
-                                                                category['img'],
-                                                                height: 15,
-                                                                width: 15,
-                                                                fit: BoxFit.fitWidth,
-                                                              ),
-                                                              const SizedBox(
-                                                                width: 5,
-                                                              ),
-                                                              Text(
-                                                                category["name"],
-                                                                style: Theme.of(
-                                                                        context)
-                                                                    .textTheme
-                                                                    .titleMedium
-                                                                    ?.copyWith(
-                                                                        color: category[
-                                                                            'color']),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        );
-                                                      }).toList()],
+                                                        ...controller
+                                                            .priorityList
+                                                            .map((category) {
+                                                          return DropdownMenuItem<
+                                                              String>(
+                                                            value:
+                                                                category["name"]
+                                                                    .toString(),
+                                                            // Ensure this is a String too
+                                                            child: Row(
+                                                              children: <Widget>[
+                                                                Image.asset(
+                                                                  category[
+                                                                      'img'],
+                                                                  height: 15,
+                                                                  width: 15,
+                                                                  fit: BoxFit
+                                                                      .fitWidth,
+                                                                ),
+                                                                const SizedBox(
+                                                                  width: 5,
+                                                                ),
+                                                                Text(
+                                                                  category[
+                                                                      "name"],
+                                                                  style: Theme.of(
+                                                                          context)
+                                                                      .textTheme
+                                                                      .titleMedium
+                                                                      ?.copyWith(
+                                                                          color:
+                                                                              category['color']),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        }).toList()
+                                                      ],
                                                       onChanged: (newValue) {
-                                                        controller.setPriority(newValue);
-                                                        controller.updateGroupValue(1,false);
+                                                        controller.setPriority(
+                                                            newValue);
+                                                        controller
+                                                            .updateGroupValue(
+                                                                1, false);
                                                       },
-                                                      value:
-                                                          controller.selectedPriority,
+                                                      value: controller
+                                                          .selectedPriority,
+                                                      icon: Icon(
+                                                        Icons.keyboard_arrow_down, // You can change this icon to whatever you want
+                                                        color: AppColors.grey, // Set the color of the icon
+                                                      ),
                                                       decoration:
                                                           const InputDecoration(
                                                         contentPadding:
@@ -511,14 +562,20 @@ class TaskScreen extends StatelessWidget {
                                                                 10, 10, 10, 5),
                                                         filled: true,
                                                         fillColor: Colors.white,
-                                                            border: InputBorder.none, // Remove underline
-                                                            enabledBorder: InputBorder.none, // Remove underline for enabled state
-                                                            focusedBorder: InputBorder.none, // Remove underline for focused state
+                                                        border:
+                                                            InputBorder.none,
+                                                        // Remove underline
+                                                        enabledBorder:
+                                                            InputBorder.none,
+                                                        // Remove underline for enabled state
+                                                        focusedBorder: InputBorder
+                                                            .none, // Remove underline for focused state
                                                       ),
                                                     ),
-                                                    if(controller.isValidPriority==true && controller.selectedReports.isEmpty )
-                                                      Text("Please select a priority",style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.red),),
-                Divider(color: AppColors.grey,)
+
+                                                    Divider(
+                                                      color: AppColors.grey,
+                                                    )
                                                   ],
                                                 ),
                                               ),
@@ -527,7 +584,9 @@ class TaskScreen extends StatelessWidget {
                                     ],
                                   ),
                                 ),
-                                SizedBox(height: 5,),
+                                SizedBox(
+                                  height: 5,
+                                ),
                                 Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 4.0),
@@ -562,10 +621,11 @@ class TaskScreen extends StatelessWidget {
                                                 flex: 8,
                                                 // width: 180,
                                                 child: Column(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     AppTextFormWidget(
-                                                      // height: 35,
+                                                        // height: 35,
                                                         hintText: "Due Date",
                                                         onTap: () {
                                                           read.selectDate(
@@ -577,23 +637,23 @@ class TaskScreen extends StatelessWidget {
                                                             .textTheme
                                                             .bodyMedium
                                                             ?.copyWith(
-                                                            color: AppColors.grey),
+                                                                color: AppColors
+                                                                    .grey),
                                                         controller: controller
                                                             .dateToController,
-                                                        validator: (value) {
-                                                          if(value!.isEmpty){
-                                                            return "Please Select a due date";
-                                                          }
-                                                          return null;
-
-                                                        },
-                                                        hintStyle:
-                                                            Theme.of(context)
-                                                                .textTheme
-                                                                .titleSmall
-                                                                ?.copyWith(
-                                                                    color: Colors
-                                                                        .grey)),
+                                                        // validator: (value) {
+                                                        //   if (value!.isEmpty) {
+                                                        //     return "Please Select a due date";
+                                                        //   }
+                                                        //   return null;
+                                                        // },
+                                                        hintStyle: Theme.of(
+                                                                context)
+                                                            .textTheme
+                                                            .titleSmall
+                                                            ?.copyWith(
+                                                                color: Colors
+                                                                    .grey)),
                                                     Divider(
                                                       color: AppColors.grey,
                                                     )
@@ -606,8 +666,7 @@ class TaskScreen extends StatelessWidget {
                                   ),
                                 ),
 
-
-                ///Assign
+                                ///Assign
                                 Padding(
                                   padding:
                                       const EdgeInsets.symmetric(vertical: 2.0),
@@ -640,114 +699,135 @@ class TaskScreen extends StatelessWidget {
                                             Expanded(
                                               flex: 8,
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
-                                                  GestureDetector(
+
+                                                  AppTextFormWidget(
+                                                    readOnly: true,
                                                     onTap: () {
                                                       showDialog(
                                                         context: context,
                                                         builder: (BuildContext
-                                                                context) =>
+                                                        context) =>
                                                             AlertDialog(
-                                                          title: Text(
-                                                            'Select User/Group',
-                                                            style:
-                                                                Theme.of(context)
+                                                              title: Text(
+                                                                'Select User/Group',
+                                                                style: Theme.of(context)
                                                                     .textTheme
                                                                     .titleLarge,
-                                                          ),
-                                                          content: Column(
-                                                            mainAxisSize:
+                                                              ),
+                                                              content: Column(
+                                                                mainAxisSize:
                                                                 MainAxisSize.min,
-                                                            children: [
-                                                              GestureDetector(
-                                                                onTap: () {
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  _showMultiSelectDialog(
-                                                                      context,
-                                                                      controller);
-                                                                },
-                                                                child: Container(
-                                                                  height: 50,
-                                                                  width: 200,
-                                                                  decoration: BoxDecoration(
-                                                                      border: Border.all(
-                                                                          color: AppColors
-                                                                              .primary),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
+                                                                children: [
+                                                                  GestureDetector(
+                                                                    onTap: () {
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      _showMultiSelectBottomSheet(
+                                                                          context,
+                                                                          controller);
+                                                                    },
+                                                                    child: Container(
+                                                                      height: 50,
+                                                                      width: 200,
+                                                                      decoration: BoxDecoration(
+                                                                          border: Border.all(
+                                                                              color: AppColors
+                                                                                  .primary),
+                                                                          borderRadius:
+                                                                          BorderRadius
+                                                                              .circular(
                                                                               10)),
-                                                                  child: const Center(
-                                                                      child: Text(
-                                                                          "User")),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                height: 10,
-                                                              ),
-                                                              GestureDetector(
-                                                                onTap: () {
-                                                                  Navigator.pop(
-                                                                      context);
-                                                                  _showMultiSelectGroup(
-                                                                      context,
-                                                                      controller);
-                                                                },
-                                                                child: Container(
-                                                                  height: 50,
-                                                                  width: 200,
-                                                                  decoration: BoxDecoration(
-                                                                      border: Border.all(
-                                                                          color: AppColors
-                                                                              .primary),
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
+                                                                      child: const Center(
+                                                                          child: Text(
+                                                                              "User")),
+                                                                    ),
+                                                                  ),
+                                                                  const SizedBox(
+                                                                    height: 10,
+                                                                  ),
+                                                                  GestureDetector(
+                                                                    onTap: () {
+                                                                      Navigator.pop(
+                                                                          context);
+                                                                      _showMultiSelectGroupBottomSheet(
+                                                                          context,
+                                                                          controller);
+                                                                    },
+                                                                    child: Container(
+                                                                      height: 50,
+                                                                      width: 200,
+                                                                      decoration: BoxDecoration(
+                                                                          border: Border.all(
+                                                                              color: AppColors
+                                                                                  .primary),
+                                                                          borderRadius:
+                                                                          BorderRadius
+                                                                              .circular(
                                                                               10)),
-                                                                  child: const Center(
-                                                                      child: Text(
-                                                                          "Group")),
-                                                                ),
+                                                                      child: const Center(
+                                                                          child: Text(
+                                                                              "Group")),
+                                                                    ),
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ],
-                                                          ),
-                                                        ),
+                                                            ),
                                                       );
                                                     },
-                                                    child: Padding(
-                                                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Text(
-                                                            controller.selectedReports.isEmpty && controller.selectedReportsId.isEmpty? "Assign to"
-                                                          : "${controller.selectedReports.isEmpty?"" :"${controller.selectedReports.length} User"} ${controller.selectedReportsId.isEmpty?"" :"${controller.selectedReportsId.length} Group"}",
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .bodyMedium
-                                                                ?.copyWith(
-                                                                    color: AppColors
-                                                                        .grey),
-                                                          ),
-                                                          Icon(
-                                                            Icons
-                                                                .keyboard_arrow_down_outlined,
-                                                            color:
-                                                                AppColors.grey,
-                                                          )
-                                                        ],
-                                                      ),
-                                                    ),
+                                                    hintText: controller.selectedReports
+                                                                        .isEmpty &&
+                                                                    controller
+                                                                        .selectedReportsId
+                                                                        .isEmpty
+                                                                ? "Assign to"
+                                                                : "${controller.selectedReports.isEmpty ? "" : "${controller.selectedReports.length} User"} ${controller.selectedReportsId.isEmpty ? "" : "${controller.selectedReportsId.length} Group"}",
+
+                                                    controller: read.assigneeController,
+                                                    sufixIcon: Icon(
+                                                              Icons
+                                                                  .keyboard_arrow_down_outlined,
+                                                              color:
+                                                                  AppColors.grey,
+                                                            ),
+                                                    style: Theme.of(
+                                                      context)
+                                                      .textTheme
+                                                      .bodyMedium
+                                                      ?.copyWith(
+                                                      color: AppColors
+                                                          .grey),
+                                                    hintStyle:  Theme.of(
+                                          context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                          color: AppColors
+                                              .grey),
                                                   ),
 
-                                                  if(controller.isValid==true && controller.selectedReports.isEmpty &&controller.selectedReportsId.isEmpty )
-                                                    Text("Please select a User or Group",style: Theme.of(context).textTheme.labelSmall?.copyWith(color: AppColors.red),),
-
-
-
+                                                  // if (controller.isValid ==
+                                                  //         true &&
+                                                  //     controller
+                                                  //         .selectedReports
+                                                  //         .isEmpty &&
+                                                  //     controller
+                                                  //         .selectedReportsId
+                                                  //         .isEmpty)
+                                                  //   Padding(
+                                                  //     padding: const EdgeInsets.only(left: 8.0),
+                                                  //     child: Text(
+                                                  //       "Please select a User or Group",
+                                                  //       style: Theme.of(context)
+                                                  //           .textTheme
+                                                  //           .labelSmall
+                                                  //           ?.copyWith(
+                                                  //               color: AppColors
+                                                  //                   .red),
+                                                  //     ),
+                                                  //   ),
                                                   Divider(
                                                     color: AppColors.grey,
                                                   )
@@ -840,7 +920,9 @@ class TaskScreen extends StatelessWidget {
                                       style: Theme.of(context)
                                           .textTheme
                                           .bodyLarge
-                                          ?.copyWith(color: AppColors.grey,fontStyle:FontStyle.italic ),
+                                          ?.copyWith(
+                                              color: AppColors.grey,
+                                              fontStyle: FontStyle.italic),
                                     ),
                                   ],
                                 ),
@@ -859,10 +941,13 @@ class TaskScreen extends StatelessWidget {
                                       onTap: () {
                                         read.titleController.clear();
                                         read.descriptionController.clear();
-                                        controller.selectedPriority=null;
+                                        controller.selectedPriority = null;
                                         controller.dateToController.clear();
                                         controller.selectedReports.clear();
                                         controller.selectedReportsId.clear();
+                                        controller.selectedDate = DateTime.now();
+                                        controller.updateGroupValue(1, false);
+                                        controller.updateGroupValue(2, false);
                                         Navigator.pop(context);
                                       },
                                     )),
@@ -873,71 +958,75 @@ class TaskScreen extends StatelessWidget {
                                       height: 50,
                                       bgColor: AppColors.primary,
                                       title: "CREATE",
-                                      onTap: () {
-
+                                      onTap: () async {
                                         if (!controller.createTaskKey.currentState!.validate()) {
-
-                                          if(controller.selectedPriority==null){
-                                            controller.updateGroupValue(1,true);
-
-                                          }
-                                          if(controller.selectedReports.isEmpty && controller.selectedReportsId.isEmpty){
-                                            controller.updateGroupValue(2,true);
-
-                                          }
+                                          // if (controller.selectedPriority ==
+                                          //     null) {
+                                          //   controller.updateGroupValue(
+                                          //       1, true);
+                                          // }
+                                          // if (controller.selectedReports.isEmpty && controller.selectedReportsId.isEmpty) {
+                                          //   controller.updateGroupValue(2, true);
+                                          // }
 
                                           return;
                                         }
-
-                                        if(controller.selectedPriority==null){
-                                          controller.updateGroupValue(1,true);
-                                          // showSnackBar(context: context,
-                                          //     title: "Warning",
-                                          //     description: "Please select priority",);
-                                          return;
-                                        }
-                                        controller.updateGroupValue(1,false);
-                                        if(controller.selectedReports.isEmpty && controller.selectedReportsId.isEmpty){
-                                          // controller.updateGroupValue(2,true);
-                                          // // showError(context: context,description: "Please select Assign to user");
-                                          //   showSnackBar(context: context,
-                                          //   title: "Warning",
-                                          //   description: "Please select Assign to user or Group",
-                                          // );
-                                            return;
-
-                                        }
-                                        controller.updateGroupValue(2,false);
+                                        else {
+                                       //  if (controller.selectedPriority ==
+                                       //      null) {
+                                       //    controller.updateGroupValue(1, true);
+                                       // return;
+                                       //  }
+                                        // else
+                                        // controller.updateGroupValue(1, false);
+                                        // if (controller
+                                        //         .selectedReports.isEmpty &&
+                                        //     controller
+                                        //         .selectedReportsId.isEmpty) {
+                                        //   controller.updateGroupValue(2,true);
+                                        //
+                                        //   return;
+                                        // }
+                                        // controller.updateGroupValue(2, false);
 
                                         final data = AddTaskModel(
-                                            taskTitle: read.titleController.text,
+                                            taskTitle:
+                                                read.titleController.text,
                                             description:
                                                 read.descriptionController.text,
-                                            priority: controller.selectedPriority ??"",
-                                            dueDate:
-                                                controller.dateToController.text,
+                                            priority:
+                                                controller.selectedPriority ??
+                                                    "",
+                                            dueDate: controller
+                                                .dateToController.text,
                                             assignUser:
-                                                controller.selectedReports ?? [],
+                                                controller.selectedReports ??
+                                                    [],
                                             assignGroup:
                                                 controller.selectedReportsId,
                                             status: "In-Progress");
 
-                                        read.addTaskList(
-                                          context,
-                                          data,
+                                        read.addTaskList(context, data,
                                           (value) {
                                             if (value == true) {
                                               read.titleController.clear();
-                                              read.descriptionController.clear();
-                                              controller.selectedPriority=null;
-                                              controller.dateToController.clear();
-                                              controller.selectedReports.clear();
-                                              controller.selectedReportsId.clear();
+                                              read.descriptionController
+                                                  .clear();
+                                              controller.selectedPriority =
+                                                  null;
+                                              controller.dateToController
+                                                  .clear();
+                                              controller.selectedReports
+                                                  .clear();
+                                              controller.selectedReportsId
+                                                  .clear();
+                                              controller.selectedDate = DateTime.now();
+
                                               Navigator.pop(context);
                                             }
                                           },
                                         );
-                                      },
+                                      }}
                                     )),
                                   ],
                                 ),
@@ -954,36 +1043,52 @@ class TaskScreen extends StatelessWidget {
         });
   }
 
-  void _showMultiSelectDialog(
-    BuildContext context,
-    TaskController provider,
-  ) {
+  void _showMultiSelectBottomSheet(BuildContext context, TaskController provider) {
     TextEditingController searchController = TextEditingController();
     List<AssignReport> filteredItems = List.from(provider.assignReport);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Select User",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              // Function to filter items based on search query
-              void _filterItems(String query) {
-                setState(() {
-                  filteredItems = provider.assignReport.where((category) {
-                    return category.displayName!
-                        .toLowerCase()
-                        .contains(query.toLowerCase());
-                  }).toList();
-                });
-              }
 
-              return SingleChildScrollView(
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: AppColors.white,
+      isScrollControlled: true, // Makes the bottom sheet expand based on content
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // Function to filter items based on search query
+            void _filterItems(String query) {
+              setState(() {
+                filteredItems = provider.assignReport.where((category) {
+                  return category.displayName!
+                      .toLowerCase()
+                      .contains(query.toLowerCase());
+                }).toList();
+              });
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 10, // Adjust for keyboard
+                top: 10.0,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height*.8),
                 child: Column(
+                  // physics: NeverScrollableScrollPhysics(),
+                  mainAxisSize: MainAxisSize.min, // Make the bottom sheet fit its content
                   children: <Widget>[
+                    // Title for the bottom sheet
+                    Text(
+                      "Assign to",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+
                     // Search TextField
                     TextField(
                       controller: searchController,
@@ -992,103 +1097,123 @@ class TaskScreen extends StatelessWidget {
                           .titleLarge
                           ?.copyWith(color: AppColors.primary),
                       decoration: InputDecoration(
-                          hintText: 'Search User',
-                          hintStyle: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(color: AppColors.primary),
-                          prefixIcon: const Icon(Icons.search),
-                          border: const OutlineInputBorder(),
-                          enabledBorder: const OutlineInputBorder(),
-                          focusedBorder: const OutlineInputBorder()),
+                        hintText: 'Search User',
+                        hintStyle: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(color: AppColors.primary),
+                        prefixIcon: const Icon(Icons.search),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(),
+                      ),
                       onChanged: (value) => _filterItems(value),
                     ),
                     const SizedBox(height: 10),
-                    // Add spacing between the search field and list
 
-                    // Filtered List
-                    ListBody(
-                      children: filteredItems.map((category) {
-                        return CheckboxListTile(
-                          activeColor: AppColors.primary,
-                          value: provider.selectedReports
-                              .contains(category.id.toString()),
-                          title: Row(
-                            children: <Widget>[
-                              Image.network(
-                                category.image ?? "",
-                                height: 15,
-                                width: 15,
-                                fit: BoxFit.fitWidth,
-                              ),
-                              const SizedBox(width: 5),
-                              Expanded(
-                                child: Text(category.displayName ?? "",
-                                  overflow: TextOverflow.ellipsis,),
-                              ),
-                            ],
-                          ),
-                          onChanged: (bool? value) {
-                            setState(() {
-                              provider.toggleReportSelection(
-                                  category.id.toString());
-                              // provider.toggleReportSelection1(category.id.toString());
-                            });
-                          },
-                        );
-                      }).toList(),
+                    // Filtered List with checkboxes
+                    Expanded(
+                      child: ListView(
+                        shrinkWrap: true,
+                        physics: AlwaysScrollableScrollPhysics(),
+                        children: filteredItems.map((category) {
+                          return CheckboxListTile(
+                            activeColor: AppColors.primary,
+                            value: provider.selectedReports
+                                .contains(category.id.toString()),
+                            title: Row(
+                              children: <Widget>[
+                                Image.network(
+                                  category.image ?? "",
+                                  height: 15,
+                                  width: 15,
+                                  fit: BoxFit.fitWidth,
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    category.displayName ?? "",
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                provider.toggleReportSelection(category.id.toString());
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    // Close button at the bottom of the bottom sheet
+                    TextButton(
+                      child: Text(
+                        "Close",
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                "Close",
-                style: Theme.of(context).textTheme.titleLarge,
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
 
-  void _showMultiSelectGroup(
-    BuildContext context,
-    TaskController provider,
-  ) {
+  void _showMultiSelectGroupBottomSheet(
+      BuildContext context, TaskController provider) {
     TextEditingController searchController = TextEditingController();
     List<TaskGroupData> filteredItems = List.from(provider.groupList);
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(
-            "Select Group",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          content: StatefulBuilder(
-            builder: (BuildContext context, StateSetter setState) {
-              // Function to filter items based on search query
-              void _filterItems(String query) {
-                setState(() {
-                  filteredItems = provider.groupList.where((category) {
-                    return category.name!
-                        .toLowerCase()
-                        .contains(query.toLowerCase());
-                  }).toList();
-                });
-              }
 
-              return SingleChildScrollView(
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: AppColors.white,
+      isScrollControlled: true, // Makes the bottom sheet expand based on content
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25.0)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            // Function to filter items based on search query
+            void _filterItems(String query) {
+              setState(() {
+                filteredItems = provider.groupList.where((category) {
+                  return category.name!
+                      .toLowerCase()
+                      .contains(query.toLowerCase());
+                }).toList();
+              });
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16.0,
+                right: 16.0,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 10, // Adjust for keyboard
+                // top: 10.0,
+              ),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height*.8),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min, // Make the bottom sheet fit its content
                   children: <Widget>[
+                    // Title for the bottom sheet
+                    Text(
+                      "Assign to Group",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 10),
+
                     // Search TextField
                     TextField(
                       controller: searchController,
@@ -1097,58 +1222,60 @@ class TaskScreen extends StatelessWidget {
                           .titleLarge
                           ?.copyWith(color: AppColors.primary),
                       decoration: InputDecoration(
-                          hintText: 'Search Group',
-                          hintStyle: Theme.of(context)
-                              .textTheme
-                              .titleLarge
-                              ?.copyWith(color: AppColors.primary),
-                          prefixIcon: const Icon(Icons.search),
-                          border: const OutlineInputBorder(),
-                          enabledBorder: const OutlineInputBorder(),
-                          focusedBorder: const OutlineInputBorder()),
+                        hintText: 'Search Group',
+                        hintStyle: Theme.of(context)
+                            .textTheme
+                            .titleLarge
+                            ?.copyWith(color: AppColors.primary),
+                        prefixIcon: const Icon(Icons.search),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: const OutlineInputBorder(),
+                        focusedBorder: const OutlineInputBorder(),
+                      ),
                       onChanged: (value) => _filterItems(value),
                     ),
                     const SizedBox(height: 10),
-                    // Add spacing between the search field and list
 
-                    // Filtered List
-                    ListBody(
-                      children: filteredItems.map((category) {
-                        return CheckboxListTile(
-                          activeColor: AppColors.primary,
-                          value: provider.selectedReportsId
-                              .contains(category.id.toString()),
-                          title: Text(category.name ?? ""),
-                          onChanged: (bool? value) {
-                            setState(() {
-                              // provider.toggleReportSelection(category.id.toString());
-                              provider.toggleReportSelection1(
-                                  category.id.toString());
-                            });
-                          },
-                        );
-                      }).toList(),
+                    // Filtered List with checkboxes
+                    Expanded(
+                      child: ListView(
+                        children: filteredItems.map((category) {
+                          return CheckboxListTile(
+                            activeColor: AppColors.primary,
+                            value: provider.selectedReportsId
+                                .contains(category.id.toString()),
+                            title: Text(category.name ?? ""),
+                            onChanged: (bool? value) {
+                              setState(() {
+                                provider.toggleReportSelection1(
+                                    category.id.toString());
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+
+                    // Close button at the bottom of the bottom sheet
+                    TextButton(
+                      child: Text(
+                        "Close",
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
                     ),
                   ],
                 ),
-              );
-            },
-          ),
-          actions: <Widget>[
-            TextButton(
-              child: Text(
-                "Close",
-                style: Theme.of(context).textTheme.titleLarge,
               ),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+            );
+          },
         );
       },
     );
   }
+
 }
 
 class AddTaskModel {

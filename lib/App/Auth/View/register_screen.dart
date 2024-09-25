@@ -5,7 +5,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:union_up/App/Auth/View/login_screen.dart';
 import 'package:union_up/Common/image_path.dart';
-import 'package:union_up/Common/snackbar.dart';
 import '../../../Common/app_colors.dart';
 import '../../../Widget/app_button.dart';
 import '../../Bottom/View/bottom_bar_screen.dart';
@@ -23,9 +22,8 @@ class RegisterScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         resizeToAvoidBottomInset: true,
         body: SingleChildScrollView(
-          child: Container(
-            width: width,
-            height: height*1.27,
+          child: ConstrainedBox(
+            constraints: BoxConstraints.expand(height: height * 1.45),
             child: GestureDetector(
               onTap: () {
                 FocusScope.of(context).requestFocus(FocusNode());
@@ -113,7 +111,7 @@ class RegisterScreen extends StatelessWidget {
               height: height * .03,
             ),
             Text(
-              "First Name",
+              "First Name *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -124,7 +122,6 @@ class RegisterScreen extends StatelessWidget {
             ),
             TextFormField(
               cursorColor: AppColors.primary,
-
               controller: authProvider.fNameController,
               keyboardType: TextInputType.emailAddress,
               decoration: InputDecoration(
@@ -181,7 +178,7 @@ class RegisterScreen extends StatelessWidget {
               height: height * .02,
             ),
             Text(
-              "Last Name",
+              "Last Name *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -191,7 +188,6 @@ class RegisterScreen extends StatelessWidget {
               height: 5,
             ),
             TextFormField(
-
               cursorColor: AppColors.primary,
               controller: authProvider.lNameController,
               keyboardType: TextInputType.emailAddress,
@@ -247,7 +243,7 @@ class RegisterScreen extends StatelessWidget {
               height: height * .02,
             ),
             Text(
-              "Email",
+              "Email *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -257,7 +253,6 @@ class RegisterScreen extends StatelessWidget {
               height: 5,
             ),
             TextFormField(
-
               cursorColor: AppColors.primary,
               controller: authProvider.emailController,
               keyboardType: TextInputType.emailAddress,
@@ -311,7 +306,7 @@ class RegisterScreen extends StatelessWidget {
               height: height * .02,
             ),
             Text(
-              "Mobile",
+              "Mobile *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -323,10 +318,10 @@ class RegisterScreen extends StatelessWidget {
 
             TextFormField(
               cursorColor: AppColors.primary,
-
               controller: authProvider.mobileNumberController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
+                contentPadding: EdgeInsets.fromLTRB(0, 0, 0, 0),
                 counterText: "",
                 border: OutlineInputBorder(
                   borderSide: BorderSide(
@@ -354,7 +349,8 @@ class RegisterScreen extends StatelessWidget {
                     showCountryPicker(
                       context: context,
                       countryListTheme: CountryListThemeData(
-                        textStyle: TextStyle(fontSize: 16, color: AppColors.grey),
+                        textStyle:
+                            TextStyle(fontSize: 16, color: AppColors.grey),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(20.0),
                           topRight: Radius.circular(20.0),
@@ -369,7 +365,8 @@ class RegisterScreen extends StatelessWidget {
                               .textTheme
                               .bodyMedium
                               ?.copyWith(color: AppColors.primary),
-                          prefixIcon: Icon(Icons.search, color: AppColors.primary),
+                          prefixIcon:
+                              Icon(Icons.search, color: AppColors.primary),
                           border: const OutlineInputBorder(
                             borderSide: BorderSide(color: Colors.black),
                           ),
@@ -389,25 +386,34 @@ class RegisterScreen extends StatelessWidget {
                   },
                   child: Container(
                     alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      border: Border(
-                        right: BorderSide.none,
-                      ),
-                    ),
                     height: 45.0,
-                    width: 70.0,
+                    width: 80.0,
+                    // Increased width to accommodate the divider
                     margin: const EdgeInsets.only(
-                        right: 10.0, bottom: 3.0, top: 3.0, left: 3.0),
+                        right: 0, bottom: 3.0, top: 3.0, left: 3.0),
                     padding: const EdgeInsets.all(3.0),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           "${authProvider.countrys.flagEmoji} + ${authProvider.countrys.phoneCode}",
                           style: const TextStyle(
                             color: Colors.black,
-                            fontSize: 15,
+                            fontSize: 12,
                             fontWeight: FontWeight.normal,
                           ),
+                        ),
+                        SizedBox(
+                          width: 2,
+                        ),
+                        const VerticalDivider(
+                          indent: 2,
+                          endIndent: 2,
+                          color: Colors.grey,
+                          // Divider color
+                          thickness: 1,
+                          // Divider thickness
+                          width: 5, // Space for the divider
                         ),
                       ],
                     ),
@@ -422,7 +428,7 @@ class RegisterScreen extends StatelessWidget {
                     ?.copyWith(color: AppColors.grey),
               ),
               maxLines: 1,
-              maxLength: 10,
+              maxLength: authProvider.mobileNumberLength,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
               ],
@@ -436,15 +442,11 @@ class RegisterScreen extends StatelessWidget {
                 value = value?.replaceAll(' ', '');
 
                 if (value == null || value.isEmpty) {
-                  return "Please enter mobile no.";
+                  return "Please enter mobile number";
                 }
 
-                if (value.length < 10) {
-                  return "Please enter at least 10 digits";
-                }
-                final RegExp mobileNumberRegExp = RegExp(r'^[3-9][0-9]{9}$');
-                if (!mobileNumberRegExp.hasMatch(value)) {
-                  return "Invalid mobile number (cannot start with 0, 1, or 2)";
+                if (value.length < authProvider.mobileNumberLength) {
+                  return "Please enter at least ${authProvider.mobileNumberLength} digits";
                 }
 
                 return null;
@@ -458,12 +460,11 @@ class RegisterScreen extends StatelessWidget {
               },
             ),
 
-
             SizedBox(
               height: height * .02,
             ),
             Text(
-              "Password",
+              "Password *",
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                   color: AppColors.black,
                   fontWeight: FontWeight.bold,
@@ -474,7 +475,6 @@ class RegisterScreen extends StatelessWidget {
             ),
             TextFormField(
               cursorColor: AppColors.primary,
-
               controller: authProvider.cPasswordController,
               keyboardType: TextInputType.visiblePassword,
               obscureText: authProvider.registerObscureText,
@@ -531,7 +531,7 @@ class RegisterScreen extends StatelessWidget {
               validator: (value) {
                 if (value!.isEmpty) {
                   return "Please enter password";
-                }else if (value.length < 6 ||  value.length>16) {
+                } else if (value.length < 6 || value.length > 16) {
                   return "Password should be 6 to 16 digit";
                 }
                 return null;
@@ -596,7 +596,7 @@ class RegisterScreen extends StatelessWidget {
                 height: 55,
                 radius: 10,
                 bgColor: AppColors.primary,
-                title: "Register",
+                title: "SIGN UP",
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: AppColors.white, fontWeight: FontWeight.bold),
                 onTap: () async {
@@ -604,14 +604,17 @@ class RegisterScreen extends StatelessWidget {
                     return;
                   }
                   if (authProvider.isChecked == false) {
-
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text("Please check the T&Cs check box.",style: Theme.of(context).textTheme.labelLarge,),
+                        content: Text(
+                          "Please check the T&Cs check box.",
+                          style: Theme.of(context).textTheme.labelLarge,
+                        ),
                         backgroundColor: AppColors.primary,
-                      ),);
+                      ),
+                    );
 
-                     return;
+                    return;
                   }
 
                   final data = RegisterDataStoreModel(
@@ -671,7 +674,7 @@ class RegisterScreen extends StatelessWidget {
                   ])),
             ),
             const SizedBox(
-              height: 15,
+              height: 20,
             ),
           ],
         ),

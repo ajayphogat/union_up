@@ -21,6 +21,7 @@ const String issueListingUrl = "${baseURL2}issues";
 const String taskListingUrl = "${baseURL2}tasks";
 
 const String addIssueUrl = "${baseURL}post_issue";
+const String updateIssueUrl = "${baseURL}update_issue";
 const String addTaskUrl = "${baseURL}add_task";
 const String taskGroupUrl = "${baseURL}task_group";
 const String taskDetailUrl = "${baseURL}task_detail";

@@ -6,7 +6,7 @@ import '../Common/app_colors.dart';
 
 class AppTheme {
   static final light = ThemeData(
-      useMaterial3: true,
+      // useMaterial3: true,
       brightness: Brightness.light,
       primaryColor: AppColors.primary,
       scaffoldBackgroundColor: AppColors.scaffoldColor,
@@ -33,7 +33,9 @@ class AppTheme {
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
+        surfaceTintColor: AppColors.white,
         elevation: 2,
+        foregroundColor: AppColors.white,
         shadowColor: AppColors.white,
         centerTitle: true,
         titleTextStyle: TextStyle(

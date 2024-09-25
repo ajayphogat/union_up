@@ -57,6 +57,14 @@ android {
         multiDexEnabled true
     }
 
+//    flavourDimensions "track"
+//    productFlavors{
+//        beta {
+//            dimensions "track"
+//            applicationIdSuffix ".beta"
+//        }
+//    }
+
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.

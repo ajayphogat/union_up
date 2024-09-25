@@ -5,6 +5,7 @@ import '../Common/app_colors.dart';
 class AppTextFormWidget extends StatelessWidget {
   final String hintText;
   final String? labelText;
+  final String? counterText;
   final Widget? sufixIcon;
   final Widget? prifixIcon;
   final VoidCallback? onTap;
@@ -34,6 +35,7 @@ class AppTextFormWidget extends StatelessWidget {
   final double? width;
   final double? height;
   final TextAlign? textAlign;
+  final Color? fillColor;
   final EdgeInsetsGeometry? contentPadding;
 
   const AppTextFormWidget({
@@ -41,6 +43,7 @@ class AppTextFormWidget extends StatelessWidget {
     this.readOnly = false,
     required this.hintText,
     this.maxLength,
+    this.counterText,
     this.sufixIcon,
     this.prifixIcon,
     required this.controller,
@@ -54,6 +57,7 @@ class AppTextFormWidget extends StatelessWidget {
     this.onChanged,
     required this.hintStyle,
     this.onTap,
+    this.fillColor,
     this.width,
     this.height,
     this.onEditing,
@@ -84,15 +88,16 @@ class AppTextFormWidget extends StatelessWidget {
           onFieldSubmitted: onComplete,
           focusNode: focusNode,
           cursorColor: AppColors.primary,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           textAlign: textAlign ?? TextAlign.start,
-          style: style,
+          style: style ?? Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.grey),
           decoration: InputDecoration(
             alignLabelWithHint: true,
-            counterText: "",
+            counterText:counterText ?? "",
 
             contentPadding: contentPadding,
             filled: true,
-            fillColor: AppColors.white,
+            fillColor:fillColor ?? AppColors.white,
 
             hintText: hintText,
             suffixIcon: sufixIcon,
